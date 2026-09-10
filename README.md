@@ -35,13 +35,13 @@ Enquanto isso não for feito, a Fase 1 não está encerrada de fato.
 
 ```bash
 npm run validar    # confere a curadoria — bloqueia o build se houver erro
-npm run build      # gera MINUTAR.html (arquivo único, autocontido)
+npm run build      # gera index.html (arquivo único, autocontido)
 npm run conferir   # gera um .docx de verdade e o reabre para auditar
 npm run tudo       # os três, em ordem
 npm run servir     # http://localhost:8378 — só para testar; o arquivo abre por file://
 ```
 
-O produto é o `MINUTAR.html` (e a cópia com carimbo de data/hora ao lado).
+O produto é o `index.html` (e a cópia com carimbo de data/hora ao lado).
 É o que se entrega aos assistentes: um arquivo, dois cliques, sem instalação.
 
 Abrindo com `?debug=1`, o arnês roda sozinho na abertura.
@@ -52,7 +52,7 @@ Abrindo com `?debug=1`, o arnês roda sozinho na abertura.
 
 ```
 dados/*.json  ──┐
-                ├──► tools/build.mjs ──► MINUTAR.html  (produto)
+                ├──► tools/build.mjs ──► index.html  (produto)
 src/template.html ─┘                      ▲
                                           │
                      vendor/jszip-3.10.1.min.js (inlinado, SHA-256 conferido)

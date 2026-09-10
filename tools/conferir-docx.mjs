@@ -1,7 +1,7 @@
 /* ==========================================================================
    conferir-docx.mjs — o arnês do pacote, rodando fora do navegador.
 
-   Carrega o motor do arquivo JÁ CONSTRUÍDO (MINUTAR.html), não do template:
+   Carrega o motor do arquivo JÁ CONSTRUÍDO (index.html), não do template:
    o que interessa conferir é exatamente aquilo que o assistente vai abrir.
    O script principal roda num vm com o mínimo de ambiente — sem DOM, sem
    localStorage — porque nada no motor depende do navegador em tempo de carga.
@@ -17,7 +17,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const ALVO = process.argv[2] || path.join(RAIZ, 'MINUTAR.html');
+const ALVO = process.argv[2] || path.join(RAIZ, 'index.html');
 
 let falhas = 0, passes = 0;
 const ok = (cond, nome, detalhe) => {

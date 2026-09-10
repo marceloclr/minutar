@@ -188,9 +188,10 @@ function build() {
     const nome = 'MINUTAR_v' + versao + '_' + dd + mm + '_' + hh + mi + '.html';
 
     fs.writeFileSync(p(nome), saida, 'utf8');
-    /* Um nome estável, além do carimbado, para o arnês e o preview apontarem
-       sempre para o build corrente. */
-    fs.writeFileSync(p('MINUTAR.html'), saida, 'utf8');
+    /* index.html é o nome estável: abre direto pelo GitHub Pages e ao
+       visitar o repositório, além de ser para onde o arnês e o preview
+       sempre apontam. O carimbado ao lado é o histórico de cada build. */
+    fs.writeFileSync(p('index.html'), saida, 'utf8');
 
     const kb = (Buffer.byteLength(saida, 'utf8') / 1024).toFixed(0);
     console.log('');
@@ -202,7 +203,7 @@ function build() {
     console.log('  JSZip 3.10.1 inlinado — SHA-256 conferido');
     console.log('');
     console.log('  → ' + nome + '  (' + kb + ' KB)');
-    console.log('  → MINUTAR.html  (mesmo conteúdo, nome estável)');
+    console.log('  → index.html  (mesmo conteúdo, nome estável)');
     console.log('');
 }
 
