@@ -39,7 +39,8 @@ máquina de secretaria sem saída à internet.
 | `partes` no corpo | Escolha **no meio da frase** (não só o parágrafo inteiro) — motivado pela Rota A (teto de 100/180 dias, trecho "CONFIRMO A TUTELA") |
 | `grupoAlineas` | Numera as alíneas **depois** de filtrar por `quando` — nenhuma letra escrita à mão, resolve a Rota D (alínea condicional da constrição) sem buraco na sequência |
 | Interface enxuta | Só Vitrine + Form + Prévia. Os cartões de teste ("conferência do pacote", "Arnês") foram removidos — redundantes com o Form de verdade e com `npm run tudo` |
-| Nunca inventar formato | CID-10 e SIGTAP têm formato oficial pesquisado e implementado; SISREG e "Id. de documento do PJe" não têm fonte confiável o bastante — ficaram texto livre, de propósito |
+| Nunca inventar formato | CID-10, SIGTAP e o dígito verificador de CNJ (Módulo 97) e SIGTAP (Módulo 11) têm fonte oficial pesquisada e implementada; SISREG e "Id. de documento do PJe" não têm fonte confiável o bastante — ficaram texto livre, de propósito |
+| Dígito verificador é aviso, não bloqueio | `Campos.validar` acusa CNJ/SIGTAP com dígito errado (borda vermelha + mensagem), mas só `Form.pendencias` (campo obrigatório vazio) impede "Baixar" — mesmo padrão das outras críticas de formato |
 | Repositório público | Nunca commitar dado pessoal ou de saúde real — só `{{placeholders}}` e exemplos fictícios ("Fulano de Tal") |
 
 ## 3. Arquitetura — resumo (detalhe completo em `CLAUDE.md`)
@@ -108,12 +109,13 @@ Em ordem de prioridade:
    sistema a um processo real. É o único risco que invalidaria o motor inteiro;
    pergunte ao usuário se isso já aconteceu antes de investir em qualquer coisa
    nova. Se ainda não, sugira que ele teste antes ou em paralelo.
-2. **Dígito verificador** (CNJ e SIGTAP, Módulo 11) — hoje só o formato é
-   conferido, não o cálculo.
-3. **Persistência de rascunho** (`sessionStorage`) — hoje o formulário vive só em
+2. **Persistência de rascunho** (`sessionStorage`) — hoje o formulário vive só em
    memória da aba; um reload acidental perde tudo digitado.
-4. **Rascunhos e transferência** — o assistente cria um modelo local
+3. **Rascunhos e transferência** — o assistente cria um modelo local
    não-oficial, exporta; o curador promove à base sem tocar em `src/`.
+
+(Dígito verificador de CNJ/SIGTAP — Módulo 97/Módulo 11 — já implementado
+em 2026-09-10, `U.dvCnj`/`U.dvSigtap`.)
 
 Nenhum desses está em andamento nem foi pedido — são candidatos. Não comece
 nenhum sem confirmar com o usuário primeiro.

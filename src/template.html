@@ -107,6 +107,32 @@ body {
 
 .envoltorio { max-width: 980px; margin: 28px auto 80px; padding: 0 24px; }
 
+/* --- Manual --------------------------------------------------------------- */
+.manual-passos { padding-left: 22px; }
+.manual-passos li { margin-bottom: 12px; line-height: 1.5; }
+.manual-duvida, .manual-tecnico {
+    border-top: 1px solid var(--borda);
+    padding: 12px 0;
+}
+.manual-duvida:first-of-type, .manual-tecnico:first-of-type { border-top: none; padding-top: 4px; }
+.manual-duvida > summary, .manual-tecnico > summary {
+    cursor: pointer; font-weight: 600; font-size: 14px;
+    list-style: none;
+}
+.manual-duvida > summary::-webkit-details-marker,
+.manual-tecnico > summary::-webkit-details-marker { display: none; }
+.manual-duvida > summary::before, .manual-tecnico > summary::before {
+    content: "▸ "; color: var(--tinta-fraca);
+}
+.manual-duvida[open] > summary::before, .manual-tecnico[open] > summary::before { content: "▾ "; }
+.manual-duvida p, .manual-tecnico p { margin: 10px 0 0; line-height: 1.5; }
+.manual-codigo {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.6;
+    background: var(--superficie-2); border: 1px solid var(--borda); border-radius: var(--raio);
+    padding: 12px 14px; margin: 10px 0 0; overflow-x: auto; white-space: pre;
+}
+code { font-family: var(--mono); font-size: .93em; }
+
 /* --- Cartões ------------------------------------------------------------ */
 .cartao {
     background: var(--superficie);
@@ -287,6 +313,10 @@ body {
         <div class="sub">3º Juizado Especial da Fazenda Pública e Saúde Pública do DF</div>
     </div>
     <div class="espaco"></div>
+    <button class="btn secundario" id="btnManual"
+            title="Abre o manual: passo a passo de uso e informação técnica de como o sistema funciona.">
+        Manual
+    </button>
     <button class="btn secundario" id="btnTema"
             title="Alterna entre o tema claro e o escuro. A escolha fica gravada neste computador e vale para as próximas aberturas.">
         Tema
@@ -294,6 +324,146 @@ body {
 </header>
 
 <main class="envoltorio" id="principal"></main>
+
+<!-- ==========================================================================
+     MANUAL — conteúdo estático (não gerado por JS), para continuar legível
+     mesmo se o motor falhar ao carregar. Alternado com #principal pelo botão
+     "Manual" do cabeçalho (ver App.alternarManual).
+     ========================================================================== -->
+<main class="envoltorio" id="manual" hidden>
+
+  <section class="cartao">
+    <span class="sobrancelha">Manual — passo a passo</span>
+    <h2>Como gerar uma minuta</h2>
+    <p class="legenda">Para o assistente que vai usar o sistema no dia a dia.</p>
+    <ol class="manual-passos">
+      <li>Abra o arquivo <code>index.html</code> (ou o link publicado) com dois cliques — não
+        precisa instalar nada, nem internet.</li>
+      <li>Na tela inicial, cada cartão colorido é um tipo de peça. Leia os pontos abaixo do
+        título (quando aquele modelo se aplica) e clique em <strong>"Usar este modelo"</strong>.</li>
+      <li>Preencha o formulário. Campo com <span class="obrig">*</span> é obrigatório. O ícone
+        <strong>"i"</strong> ao lado do rótulo explica o que aquele campo faz na peça — passe o
+        mouse ou toque nele.</li>
+      <li>Alguns campos só aparecem depois que você responde outro campo (por exemplo, "Id. da
+        decisão que concedeu a tutela" só aparece se você marcar "Sim" em "Houve concessão de
+        tutela de urgência?"). Isso é esperado — o campo não sumiu, só ainda não é preciso.</li>
+      <li>Alguns campos <strong>nunca aparecem</strong>, porque o sistema calcula sozinho — por
+        exemplo, a prioridade numérica e o prazo em dias da Rota A vêm da cor de risco e da
+        graduação da mora que você já escolheu, sem precisar digitar de novo.</li>
+      <li>Enquanto você digita número de processo, CID ou código SIGTAP, o sistema confere o
+        formato e o dígito verificador na hora. Uma borda vermelha e uma mensagem abaixo do
+        campo avisam se algo está errado — corrija antes de assinar a peça.</li>
+      <li>Clique em <strong>"Ver prévia"</strong> a qualquer momento para ver como o texto vai
+        ficar, mesmo com campos ainda vazios.</li>
+      <li>Clique em <strong>"Baixar minuta (.docx)"</strong>. Se faltar algum campo obrigatório,
+        uma lista aparece dizendo o que falta, e nada é baixado até você completar.</li>
+      <li>O arquivo <code>.docx</code> vai para a pasta de downloads do navegador. Abra no Word
+        ou no LibreOffice para conferir antes de anexar ao processo no PJe.</li>
+      <li>Nada do que você digita sai do computador. Não há servidor, não há internet envolvida
+        — tudo acontece dentro do navegador.</li>
+    </ol>
+  </section>
+
+  <section class="cartao">
+    <span class="sobrancelha">Manual — perguntas comuns</span>
+    <h2>Dúvidas frequentes</h2>
+    <details class="manual-duvida">
+      <summary>O sistema salva o que eu digitei se eu recarregar a página?</summary>
+      <p>Ainda não. Fechar a aba ou recarregar a página apaga o formulário. Termine de gerar a
+        minuta antes de sair da página.</p>
+    </details>
+    <details class="manual-duvida">
+      <summary>Por que um campo não aparece, mesmo eu tendo escolhido a opção certa?</summary>
+      <p>Confira se você já respondeu o campo do qual ele depende — geralmente indicado no texto
+        de ajuda do próprio campo (o ícone "i").</p>
+    </details>
+    <details class="manual-duvida">
+      <summary>A borda vermelha impede eu baixar o arquivo?</summary>
+      <p>Não. É um aviso para você corrigir o formato antes de assinar. Só um campo obrigatório
+        vazio realmente impede o download — nesse caso, o sistema lista o que falta.</p>
+    </details>
+    <details class="manual-duvida">
+      <summary>O "diagnóstico" é a mesma coisa que o "CID"?</summary>
+      <p>Depende do modelo. Alguns pedem os dois separados (a descrição do diagnóstico em texto
+        e o código CID à parte); outros pedem só a descrição, sem código.</p>
+    </details>
+    <details class="manual-duvida">
+      <summary>Posso preencher o formulário com um caso de teste, sem usar dado real?</summary>
+      <p>Pode — nada sai do seu computador antes de você clicar em baixar. Só não use CPF, nome
+        ou dado de saúde real de ninguém num teste, e não anexe o resultado a um processo real.</p>
+    </details>
+  </section>
+
+  <section class="cartao">
+    <span class="sobrancelha">Manual técnico</span>
+    <h2>Como o sistema é organizado</h2>
+    <p class="legenda">Para quem for manter ou estender o sistema. O detalhe completo está em
+      <code>CLAUDE.md</code> e <code>README.md</code> no repositório — este resumo serve para
+      quem só tem este arquivo <code>.docx</code>… digo, <code>.html</code>, em mãos.</p>
+
+    <details class="manual-tecnico" open>
+      <summary>O que é e como roda</summary>
+      <p>Gerador de minutas em <code>.docx</code> real (OOXML), rodando inteiramente no
+        navegador — um único arquivo HTML monta o pacote ZIP (via JSZip inlinado, sem CDN) e
+        baixa via Blob. Sem servidor, sem internet, pensado para máquina de secretaria.</p>
+    </details>
+
+    <details class="manual-tecnico">
+      <summary>Autoria modular, distribuição monolítica</summary>
+      <p>A curadoria (conteúdo jurídico, formatação) vive em arquivos <code>dados/*.json</code>
+        separados; o motor vive em <code>src/template.html</code>. Um build
+        (<code>tools/build.mjs</code>) injeta um no outro e produz o <code>index.html</code>
+        único que se abre com dois cliques — é este arquivo que você está vendo agora.
+        Acrescentar um tipo de peça é, na maioria das vezes, só acrescentar um JSON novo em
+        <code>dados/modelos/</code>, sem tocar no motor.</p>
+    </details>
+
+    <details class="manual-tecnico">
+      <summary>Schema de um modelo (<code>dados/modelos/*.json</code>)</summary>
+      <p>Cada modelo tem <code>metadados</code> (título, tipo de peça, órgão),
+        <code>aplicabilidade</code>/<code>triagem</code> (quando usar ou não usar esse modelo),
+        <code>campos</code> (o formulário) e <code>corpo</code> (o texto da peça, com
+        placeholders <code>{{campo}}</code>).</p>
+      <p>Tipos de campo disponíveis: <code>processo</code> (CNJ, com dígito verificador),
+        <code>cid</code> (CID-10), <code>sigtap</code> (código SIGTAP, com dígito verificador),
+        <code>hora</code>, <code>data</code>, <code>numero</code>, <code>moeda</code>,
+        <code>selecao</code>, <code>multipla</code>, <code>booleano</code>, <code>parte</code>,
+        <code>texto</code>, <code>textoLongo</code>. Um campo pode ter <code>mostrarQuando</code>
+        (só aparece se outro campo tiver certo valor) ou <code>derivado</code> (nunca aparece no
+        formulário — é calculado a partir de outros campos já preenchidos).</p>
+      <p>No corpo, um parágrafo pode ter <code>texto</code> fixo, <code>escolha</code> (troca o
+        parágrafo inteiro conforme um campo), <code>partes</code> (troca só um trecho no meio da
+        frase) ou ser um <code>grupoAlineas</code> (numera a) b) c)... sozinho, depois de decidir
+        quais itens entram).</p>
+    </details>
+
+    <details class="manual-tecnico">
+      <summary>Como validar e gerar (linha de comando)</summary>
+      <pre class="manual-codigo">npm run validar    # confere a curadoria — bloqueia se houver erro
+npm run build      # gera index.html a partir de dados/ + src/
+npm run conferir   # gera um .docx de verdade e audita (formato OOXML)
+npm run tudo       # os três, em ordem
+npm run servir     # http://localhost:8378, só para testar</pre>
+      <p>O validador (<code>tools/validar-modelos.mjs</code>) bloqueia o build se um modelo tiver
+        placeholder sem campo, condição que nunca dispara, campo sem <code>ajuda</code>, ou
+        qualquer outra inconsistência de schema — "nunca inventar dado" é condição de
+        compilação, não só uma diretriz.</p>
+    </details>
+
+    <details class="manual-tecnico">
+      <summary>Onde saber mais</summary>
+      <p><code>CLAUDE.md</code> tem a arquitetura completa, o schema inteiro, as regras de
+        trabalho e o estado atual do projeto. <code>README.md</code> tem uma versão mais curta,
+        voltada a quem chega agora. <code>PROMPT_CONTINUACAO.md</code> é o texto para retomar o
+        desenvolvimento numa sessão nova. Os três estão no repositório:
+        <code>github.com/marceloclr/minutar</code>.</p>
+    </details>
+  </section>
+
+  <div class="linha-btn">
+    <button class="btn secundario" id="btnFecharManual">Voltar ao formulário</button>
+  </div>
+</main>
 
 <script>
 "use strict";
@@ -451,6 +621,29 @@ const U = {
         const [inteiro, centavos] = Math.abs(n).toFixed(2).split('.');
         const comPontos = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         return (n < 0 ? '-R$ ' : 'R$ ') + comPontos + ',' + centavos;
+    },
+
+    /* Dígito verificador do CNJ — Módulo 97 Base 10 (ISO 7064), Resolução CNJ
+       65/2008. n/a/j/tr/o já vêm sem o DD (que é o que estamos calculando).
+       "resto" processado dígito a dígito para não estourar Number com um
+       inteiro de 20 dígitos. */
+    dvCnj(n, a, j, tr, o) {
+        const base = n + a + j + tr + o + '00';
+        let resto = 0;
+        for (let i = 0; i < base.length; i++) resto = (resto * 10 + Number(base[i])) % 97;
+        return String(98 - resto).padStart(2, '0');
+    },
+
+    /* Dígito verificador do SIGTAP — Módulo 11 sobre os 9 primeiros dígitos,
+       pesos 2..9 depois 2..3 de novo, da direita para a esquerda. Resto 0 ou
+       1 vira DV 0 (não 11 nem negativo). */
+    dvSigtap(nove) {
+        const pesos = [2, 3, 4, 5, 6, 7, 8, 9, 2];
+        const digitos = nove.split('').reverse();
+        let soma = 0;
+        digitos.forEach((d, i) => { soma += Number(d) * pesos[i]; });
+        const resto = soma % 11;
+        return (resto === 0 || resto === 1) ? 0 : 11 - resto;
     },
 
     /* --- Nomes de arquivo ----------------------------------------------- */
@@ -734,9 +927,13 @@ const Campos = {
         if (valor == null || valor === '') return { valido: true, mensagem: '' };
 
         if (campo.tipo === 'processo') {
-            const ok = /^\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}$/.test(valor);
-            return ok ? { valido: true, mensagem: '' }
-                      : { valido: false, mensagem: 'Formato incompleto — o padrão é NNNNNNN-DD.AAAA.J.TR.OOOO.' };
+            const m = /^(\d{7})-(\d{2})\.(\d{4})\.(\d)\.(\d{2})\.(\d{4})$/.exec(valor);
+            if (!m) return { valido: false, mensagem: 'Formato incompleto — o padrão é NNNNNNN-DD.AAAA.J.TR.OOOO.' };
+            const [, n, dd, a, j, tr, o] = m;
+            if (dd !== U.dvCnj(n, a, j, tr, o)) {
+                return { valido: false, mensagem: 'Dígito verificador não confere — confira o número do processo.' };
+            }
+            return { valido: true, mensagem: '' };
         }
         /* Só o formato (LNN ou LNN.N) — não confere contra a tabela real da
            CID-10, que este sistema não embarca. */
@@ -745,12 +942,14 @@ const Campos = {
             return ok ? { valido: true, mensagem: '' }
                       : { valido: false, mensagem: 'Formato esperado: uma letra e dois dígitos, com subcategoria opcional (ex.: F41.1).' };
         }
-        /* 10 dígitos (Ministério da Saúde/SIGTAP) — dígito verificador não
-           conferido, só a quantidade. */
         if (campo.tipo === 'sigtap') {
-            const ok = /^\d{10}$/.test(valor);
-            return ok ? { valido: true, mensagem: '' }
-                      : { valido: false, mensagem: 'O código SIGTAP tem 10 dígitos.' };
+            const m = /^(\d{9})(\d)$/.exec(valor);
+            if (!m) return { valido: false, mensagem: 'O código SIGTAP tem 10 dígitos.' };
+            const [, nove, dv] = m;
+            if (Number(dv) !== U.dvSigtap(nove)) {
+                return { valido: false, mensagem: 'Dígito verificador não confere — confira o código SIGTAP.' };
+            }
+            return { valido: true, mensagem: '' };
         }
         if (campo.tipo === 'numero' || campo.tipo === 'moeda') {
             const n = Number(valor);
@@ -1875,10 +2074,15 @@ Testes.def('Form.pendencias só acusa obrigatório, visível e vazio', () => {
 
 Testes.def('Campos.mascarar e Campos.validar — processo e cid', () => {
     const processo = { tipo: 'processo' };
-    Testes.igual(Campos.mascarar(processo, '0700000062025807 0016'),
-                 '0700000-06.2025.8.07.0016', 'máscara do processo não formatou como esperado');
-    Testes.ok(Campos.validar(processo, '0700000-06.2025.8.07.0016').valido, 'processo completo deveria ser válido');
-    Testes.ok(!Campos.validar(processo, '0700000-06.2025').valido, 'processo incompleto não deveria ser válido');
+    Testes.igual(Campos.mascarar(processo, '0700000652025807 0016'),
+                 '0700000-65.2025.8.07.0016', 'máscara do processo não formatou como esperado');
+    /* 65 é o dígito verificador real de 0700000/2025.8.07.0016 pelo Módulo 97
+       (conferido à mão antes de implementar) — não é um número inventado. */
+    Testes.ok(Campos.validar(processo, '0700000-65.2025.8.07.0016').valido,
+              'processo com dígito verificador correto deveria ser válido');
+    Testes.ok(!Campos.validar(processo, '0700000-06.2025.8.07.0016').valido,
+              'processo com dígito verificador errado não deveria ser válido');
+    Testes.ok(!Campos.validar(processo, '0700000-65.2025').valido, 'processo incompleto não deveria ser válido');
 
     const cid = { tipo: 'cid' };
     Testes.igual(Campos.mascarar(cid, 'f411'), 'F41.1', 'máscara do CID não formatou como esperado');
@@ -1896,12 +2100,31 @@ Testes.def('Campos.mascarar e Campos.validar — sigtap e U.horaExtenso', () => 
     const sigtap = { tipo: 'sigtap' };
     Testes.igual(Campos.mascarar(sigtap, '03.01.01.00-64'), '0301010064',
                  'máscara do SIGTAP deveria só deixar os 10 dígitos');
-    Testes.ok(Campos.validar(sigtap, '0301010064').valido, 'SIGTAP com 10 dígitos deveria ser válido');
+    /* 0301010064 é um código SIGTAP real (consulta médica em atenção
+       especializada); o "4" final bate com o Módulo 11 dos 9 primeiros
+       dígitos — conferido à mão antes de implementar. */
+    Testes.ok(Campos.validar(sigtap, '0301010064').valido,
+              'SIGTAP com dígito verificador correto deveria ser válido');
+    Testes.ok(!Campos.validar(sigtap, '0301010065').valido,
+              'SIGTAP com dígito verificador errado não deveria ser válido');
     Testes.ok(!Campos.validar(sigtap, '030101006').valido, 'SIGTAP com 9 dígitos não deveria ser válido');
 
     Testes.igual(U.horaExtenso('09:30'), '9h30', 'hora com minuto não redondo não bateu');
     Testes.igual(U.horaExtenso('14:00'), '14h', 'hora em ponto deveria omitir os minutos');
     Testes.igual(U.horaExtenso('lixo'), null, 'formato inválido deveria dar null');
+});
+
+Testes.def('U.dvCnj e U.dvSigtap — Módulo 97 e Módulo 11', () => {
+    Testes.igual(U.dvCnj('0700000', '2025', '8', '07', '0016'), '65',
+                 'dígito verificador do CNJ não bateu com o cálculo manual');
+    Testes.igual(U.dvSigtap('030101006'), 4,
+                 'dígito verificador do SIGTAP não bateu com o cálculo manual');
+
+    /* Resto 0 e resto 1 são os únicos casos em que o DV foge da conta direta
+       "11 - resto" (viraria 11 ou 10, os dois inválidos como dígito) — o
+       ponto mais fácil de esquecer na implementação. */
+    Testes.igual(U.dvSigtap('000000000'), 0, 'resto 0 deveria dar DV 0, não 11');
+    Testes.igual(U.dvSigtap('000000006'), 0, 'resto 1 (soma 12) deveria dar DV 0, não 10');
 });
 
 /* --- Montagem: grupoAlineas ------------------------------------------------- */
@@ -2192,6 +2415,8 @@ const App = {
 
     iniciar() {
         document.getElementById('btnTema').addEventListener('click', App.alternarTema);
+        document.getElementById('btnManual').addEventListener('click', App.alternarManual);
+        document.getElementById('btnFecharManual').addEventListener('click', App.alternarManual);
         App.pintar();
     },
 
@@ -2200,6 +2425,17 @@ const App = {
         const novo = atual === 'escuro' ? 'claro' : 'escuro';
         document.documentElement.setAttribute('data-tema', novo);
         try { localStorage.setItem('minutar_tema', novo); } catch (e) { /* ver [0] */ }
+    },
+
+    /* Manual e formulário nunca ficam visíveis ao mesmo tempo — evita rolar
+       uma tela com os dois, e mantém #principal como o "normal" ao voltar. */
+    alternarManual() {
+        const manual = document.getElementById('manual');
+        const principal = document.getElementById('principal');
+        const abrindo = manual.hidden;
+        manual.hidden = !abrindo;
+        principal.hidden = abrindo;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     },
 
     pintar() {

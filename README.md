@@ -93,7 +93,9 @@ O JS é organizado em namespaces numerados, que fazem o papel de arquivos:
 [23] App      [24] Testes     [Z] JSZip
 ```
 
-Os blocos `[6]`/`[7]` (estado central/CNJ com dígito verificador) e `[17]`/`[19]`–`[22]`
+O dígito verificador do CNJ e do SIGTAP (Módulo 97/Módulo 11) já está em
+`Campos.validar`/`U.dvCnj`/`U.dvSigtap` — não um bloco `[7]` à parte. Os
+blocos `[6]` (estado central) e `[17]`/`[19]`–`[22]`
 (componentes de UI reaproveitáveis, navegação, persistência, rascunhos e
 transferência de modelos não-oficiais) seguem fora de escopo até serem pedidos.
 
@@ -154,6 +156,5 @@ Nada sai do computador do assistente. Não há servidor.
 | | |
 |---|---|
 | Prova de campo no PJe | ninguém anexou ainda um `.docx` gerado pelo sistema a um processo real — prioridade sobre qualquer coisa nova |
-| Dígito verificador (CNJ, SIGTAP) | hoje só o formato é conferido, não o cálculo (Módulo 11 etc.) |
 | Persistência de rascunho | `sessionStorage` para não perder preenchimento num reload acidental |
 | Rascunhos e transferência | o assistente cria um modelo local não-oficial, exporta; o curador promove à base sem tocar em `src/` |

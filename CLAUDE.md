@@ -131,9 +131,10 @@ Comandos: `npm run validar | build | conferir | tudo | servir`.
 ```
 
 Tipos de campo (`Campos.renderizar`/`validar`/`mascarar` em `src/template.html`):
-`processo` (máscara + validação de formato CNJ, não o dígito verificador),
-`cid` (formato CID-10: letra + 2 dígitos + subcategoria opcional, ex.
-`F41.1`), `sigtap` (10 dígitos GGSSFFPPPP, não o dígito verificador),
+`processo` (máscara + formato CNJ + dígito verificador — Módulo 97 Base 10,
+Resolução CNJ 65/2008, `U.dvCnj`), `cid` (formato CID-10: letra + 2 dígitos +
+subcategoria opcional, ex. `F41.1`), `sigtap` (10 dígitos GGSSFFPPPP +
+dígito verificador — Módulo 11, `U.dvSigtap`),
 `hora` (`<input type="time">`, filtro `|horaExtenso` pra virar "9h30"),
 `data`, `numero`, `moeda` (filtro `|moeda`, formata BRL sem depender de
 `Intl`), `selecao`, `multipla`, `booleano` (é `<select>` Sim/Não/vazio —
@@ -203,6 +204,11 @@ histórico do git, commit a commit, se precisar):
 - Pesquisado antes de implementar: CID-10 e SIGTAP têm formato oficial
   documentado (implementados); SISREG e Id. de documento do PJe não têm
   fonte confiável o bastante — continuam texto livre, de propósito.
+- Dígito verificador de `processo` (Módulo 97, `U.dvCnj`) e `sigtap`
+  (Módulo 11, `U.dvSigtap`) implementados e conferidos à mão antes do código
+  (0700000/2025.8.07.0016 → DD 65; 030101006 → DV 4). Mesmo padrão de
+  crítica das demais: aviso visual (`Campos.validar`), não bloqueia "Baixar"
+  — só `Form.pendencias` (campo obrigatório vazio) bloqueia.
 
 **Pendente:** ninguém anexou ainda um `.docx` gerado pelo sistema a um
 processo real no PJe. É o único risco que invalidaria o motor inteiro — vale
@@ -211,6 +217,5 @@ mais que qualquer outra coisa nova até acontecer.
 ## Próximos passos (a confirmar com o usuário antes de implementar)
 
 Nada em andamento. Candidatos, todos fora de escopo até serem pedidos:
-dígito verificador do CNJ/SIGTAP (Módulo 11), persistência de rascunho em
-`sessionStorage`, Rascunhos/Transferência de modelos não-oficiais (`[21]`/
-`[22]`).
+persistência de rascunho em `sessionStorage`, Rascunhos/Transferência de
+modelos não-oficiais (`[21]`/`[22]`).
