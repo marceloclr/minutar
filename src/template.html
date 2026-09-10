@@ -50,6 +50,12 @@
     --recuo-corpo: 1.25cm;
     --sans:   system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --mono:   ui-monospace, "Cascadia Code", "Consolas", monospace;
+
+    /* Tons suaves só para diferenciar cartão de modelo à distância. */
+    --cartao1-fundo: #eaf2f8; --cartao1-borda: #9fc0dc;
+    --cartao2-fundo: #eaf5ef; --cartao2-borda: #9ccbad;
+    --cartao3-fundo: #faf3e6; --cartao3-borda: #d9bb84;
+    --cartao4-fundo: #f2eef8; --cartao4-borda: #bfabd6;
 }
 
 html[data-tema="escuro"] {
@@ -69,6 +75,11 @@ html[data-tema="escuro"] {
     --neutro:       #9aa4b2;
 
     --sombra: 0 1px 2px rgba(0, 0, 0, .4), 0 4px 14px rgba(0, 0, 0, .35);
+
+    --cartao1-fundo: #182531; --cartao1-borda: #3d5b78;
+    --cartao2-fundo: #16261e; --cartao2-borda: #3c6a4c;
+    --cartao3-fundo: #2a2317; --cartao3-borda: #7a6032;
+    --cartao4-fundo: #221d2b; --cartao4-borda: #5e4b78;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -205,6 +216,73 @@ body {
 .folha p.est-fecho           { margin: 12pt 0; }
 .folha p.est-assinatura      { text-align: center; margin: 12pt 0 0; }
 .folha p.est-vazio           { margin: 0; min-height: 12pt; }
+
+/* --- Campos do formulário ------------------------------------------------ */
+.campo { margin-bottom: 16px; }
+.campo label { display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 5px; }
+.campo .obrig { color: var(--perigo); }
+.campo input[type="text"], .campo input[type="date"], .campo input[type="number"],
+.campo select, .campo textarea {
+    font: inherit; font-size: 14px;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--borda-forte);
+    border-radius: var(--raio);
+    background: var(--superficie);
+    color: var(--tinta);
+}
+.campo input:focus, .campo select:focus, .campo textarea:focus {
+    outline: 2px solid var(--primaria); outline-offset: 1px;
+}
+.campo textarea { min-height: 72px; resize: vertical; }
+.campo .campo-multipla label {
+    display: flex; align-items: center; gap: 6px;
+    font-weight: 400; font-size: 14px; margin-bottom: 4px;
+}
+.campo.pendente input, .campo.pendente select, .campo.pendente textarea,
+.campo.invalido input, .campo.invalido select, .campo.invalido textarea { border-color: var(--perigo); }
+.campo-erro { display: block; color: var(--perigo); font-size: 12px; margin-top: 4px; min-height: 15px; }
+
+.pendencias { margin: 6px 0 0; padding-left: 20px; font-size: 13.5px; }
+.pendencias li { margin-bottom: 4px; }
+
+/* --- Grupos de campos: só organização visual, sempre à vista ------------- */
+.grupo-campos {
+    border: 1px solid var(--borda); border-radius: var(--raio);
+    padding: 4px 16px; margin-bottom: 12px; background: var(--superficie);
+}
+.grupo-campos > h3 {
+    margin: 0; padding: 10px 0; font-weight: 600; font-size: 13.5px;
+    display: flex; align-items: center; gap: 8px;
+}
+
+/* Lado a lado, aproveitando a largura — cada campo numa coluna de ~240px
+   pra cima; textoLongo e multipla (às vezes compridos) ocupam a linha
+   inteira em vez de espremer numa coluna. */
+.grade-campos {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 4px 20px;
+    padding-top: 4px; padding-bottom: 12px;
+}
+.grade-campos .campo { margin-bottom: 12px; }
+.grade-campos .campo-tipo-textoLongo, .grade-campos .campo-tipo-multipla {
+    grid-column: 1 / -1;
+}
+
+/* --- Vitrine -------------------------------------------------------------- */
+.vitrine-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.modelo-cartao {
+    border: 1px solid var(--borda); border-radius: var(--raio); padding: 16px;
+    background: var(--superficie-2);
+    display: flex; flex-direction: column; gap: 10px;
+}
+.modelo-cartao h3 { margin: 0; font-size: 14.5px; }
+.modelo-cartao ul { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--tinta-fraca); }
+.modelo-cartao .linha-btn { margin-top: auto; }
+.modelo-cartao.cor-1 { background: var(--cartao1-fundo); border-color: var(--cartao1-borda); }
+.modelo-cartao.cor-2 { background: var(--cartao2-fundo); border-color: var(--cartao2-borda); }
+.modelo-cartao.cor-3 { background: var(--cartao3-fundo); border-color: var(--cartao3-borda); }
+.modelo-cartao.cor-4 { background: var(--cartao4-fundo); border-color: var(--cartao4-borda); }
 </style>
 </head>
 
@@ -336,6 +414,15 @@ const U = {
         const dt = (d instanceof Date) ? d : U.dataDeIso(d);
         if (!dt) return null;
         return dt.getDate() + ' de ' + U.MESES[dt.getMonth()] + ' de ' + dt.getFullYear();
+    },
+
+    /* "9h30" (input type="time" devolve "09:30") — minuto ":00" vira só "9h",
+       como a redação jurídica escreve, não "9h00". */
+    horaExtenso(s) {
+        const m = /^(\d{2}):(\d{2})$/.exec(String(s || ''));
+        if (!m) return null;
+        const h = parseInt(m[1], 10);
+        return m[2] === '00' ? h + 'h' : h + 'h' + m[2];
     },
 
     dataDeIso(s) {
@@ -497,6 +584,267 @@ const Cond = {
 };
 
 /* ==========================================================================
+   [9] CAMPOS — um controle de formulário por tipo de campo.
+   Cada função aqui é pura o bastante para testar sem DOM, exceto lerValor
+   (lê de volta o que o assistente digitou) e renderizar (produz HTML).
+   ========================================================================== */
+const Campos = {
+
+    /* Sem mostrarQuando, o campo está sempre visível. Campo escondido nunca
+       entra em obrigatorio/pendências — ver Form.pendencias. */
+    visivel(campo, valores) {
+        return Cond.avaliar(campo.mostrarQuando, valores);
+    },
+
+    /* "" conta como vazio para todo tipo; array vazio só para "multipla";
+       booleano só é vazio se ainda não foi respondido (nem sim, nem não) —
+       um false digitado é uma resposta, não uma lacuna. */
+    vazio(campo, valor) {
+        if (campo.tipo === 'multipla') return !Array.isArray(valor) || valor.length === 0;
+        return valor == null || valor === '';
+    },
+
+    renderizar(campo, valor) {
+        const id = 'campo_' + campo.id;
+        const obrig = campo.obrigatorio ? ' <span class="obrig" title="Campo obrigatório">*</span>' : '';
+        let controle;
+
+        switch (campo.tipo) {
+            case 'textoLongo':
+                controle = '<textarea id="' + id + '" name="' + U.esc(campo.id) + '">' + U.esc(valor || '') + '</textarea>';
+                break;
+
+            case 'data':
+                controle = '<input type="date" id="' + id + '" name="' + U.esc(campo.id) + '" value="' +
+                           U.esc(valor || '') + '">';
+                break;
+
+            case 'numero':
+            case 'moeda': {
+                const passo = campo.tipo === 'moeda' ? ' step="0.01"' : '';
+                const min = campo.minimo != null ? ' min="' + campo.minimo + '"' : '';
+                const max = campo.maximo != null ? ' max="' + campo.maximo + '"' : '';
+                controle = '<input type="number" id="' + id + '" name="' + U.esc(campo.id) + '"' + passo + min + max +
+                           ' value="' + U.esc(valor == null ? '' : valor) + '">';
+                break;
+            }
+
+            case 'selecao': {
+                const opcoes = (campo.opcoes || []).map(o =>
+                    '<option value="' + U.esc(o.valor) + '"' + (valor === o.valor ? ' selected' : '') + '>' +
+                    U.esc(o.rotulo) + '</option>').join('');
+                controle = '<select id="' + id + '" name="' + U.esc(campo.id) + '">' +
+                           '<option value="">— selecione —</option>' + opcoes + '</select>';
+                break;
+            }
+
+            /* Booleano é <select>, não checkbox: um checkbox desmarcado é
+               indistinguível de "ainda não respondido" e resolveria em false
+               sem o assistente ter confirmado nada — inventar fato jurídico
+               (ex.: "não houve tutela") só porque ninguém tocou no campo. */
+            case 'booleano': {
+                const marcado = v => (valor === true && v === 'sim') || (valor === false && v === 'nao');
+                controle = '<select id="' + id + '" name="' + U.esc(campo.id) + '">' +
+                    '<option value=""' + (valor == null ? ' selected' : '') + '>— selecione —</option>' +
+                    '<option value="sim"' + (marcado('sim') ? ' selected' : '') + '>Sim</option>' +
+                    '<option value="nao"' + (marcado('nao') ? ' selected' : '') + '>Não</option>' +
+                    '</select>';
+                break;
+            }
+
+            case 'multipla': {
+                const marcados = Array.isArray(valor) ? valor : [];
+                controle = '<div class="campo-multipla">' + (campo.opcoes || []).map(o =>
+                    '<label><input type="checkbox" data-multipla="' + U.esc(campo.id) + '" value="' + U.esc(o.valor) + '"' +
+                    (marcados.indexOf(o.valor) >= 0 ? ' checked' : '') + '> ' + U.esc(o.rotulo) + '</label>'
+                ).join('') + '</div>';
+                break;
+            }
+
+            case 'processo':
+                controle = '<input type="text" id="' + id + '" name="' + U.esc(campo.id) + '" value="' +
+                           U.esc(valor || '') + '" inputmode="numeric" maxlength="25" ' +
+                           'placeholder="0000000-00.0000.0.00.0000" ' +
+                           'pattern="\\d{7}-\\d{2}\\.\\d{4}\\.\\d\\.\\d{2}\\.\\d{4}">';
+                break;
+
+            /* Categoria (3) opcional subcategoria (+1) — LNN ou LNN.N, ex.
+               F41.1. Não valida contra a tabela real da CID-10 (isso exigiria
+               embarcar a tabela inteira); só o formato. */
+            case 'cid':
+                controle = '<input type="text" id="' + id + '" name="' + U.esc(campo.id) + '" value="' +
+                           U.esc(valor || '') + '" maxlength="5" placeholder="A00.0" ' +
+                           'pattern="[A-Za-z]\\d{2}(\\.\\d)?" style="text-transform:uppercase">';
+                break;
+
+            /* GGSSFFPPPP — 10 dígitos (Ministério da Saúde/SIGTAP). O 10º é
+               dígito verificador (Módulo 11); não conferido aqui, só a
+               quantidade de dígitos — mesma lógica do CNJ: formato agora,
+               cálculo de dígito verificador em fase posterior. */
+            case 'sigtap':
+                controle = '<input type="text" id="' + id + '" name="' + U.esc(campo.id) + '" value="' +
+                           U.esc(valor || '') + '" inputmode="numeric" maxlength="10" placeholder="0000000000" ' +
+                           'pattern="\\d{10}">';
+                break;
+
+            case 'hora':
+                controle = '<input type="time" id="' + id + '" name="' + U.esc(campo.id) + '" value="' +
+                           U.esc(valor || '') + '">';
+                break;
+
+            default: /* texto, parte */
+                controle = '<input type="text" id="' + id + '" name="' + U.esc(campo.id) + '" value="' +
+                           U.esc(valor || '') + '">';
+        }
+
+        return '<div class="campo campo-tipo-' + campo.tipo + (campo._pendente ? ' pendente' : '') +
+               '" data-campo="' + U.esc(campo.id) + '">' +
+               '<label' + (campo.tipo !== 'multipla' ? ' for="' + id + '"' : '') + '>' + U.esc(campo.rotulo) + obrig +
+               ' ' + U.dica(campo.ajuda) + '</label>' + controle +
+               '<span class="campo-erro" id="erro_' + U.esc(campo.id) + '"></span></div>';
+    },
+
+    /* Insere separadores enquanto o assistente digita e barra o que não
+       pode fazer parte do valor — cada tipo com sua própria máscara. Tipo
+       sem máscara devolve o bruto sem alterar (é o caso comum). */
+    mascarar(campo, bruto) {
+        if (campo.tipo === 'processo') {
+            const d = String(bruto || '').replace(/\D/g, '').slice(0, 20);
+            let s = d.slice(0, 7);
+            if (d.length > 7)  s += '-' + d.slice(7, 9);
+            if (d.length > 9)  s += '.' + d.slice(9, 13);
+            if (d.length > 13) s += '.' + d.slice(13, 14);
+            if (d.length > 14) s += '.' + d.slice(14, 16);
+            if (d.length > 16) s += '.' + d.slice(16, 20);
+            return s;
+        }
+        if (campo.tipo === 'cid') {
+            const s = String(bruto || '').toUpperCase();
+            const letra = (s.match(/[A-Z]/) || [''])[0];
+            if (!letra) return '';
+            const digitos = s.replace(/[^0-9]/g, '').slice(0, 3);
+            let r = letra + digitos.slice(0, 2);
+            if (digitos.length > 2) r += '.' + digitos.slice(2, 3);
+            return r;
+        }
+        if (campo.tipo === 'sigtap') {
+            return String(bruto || '').replace(/\D/g, '').slice(0, 10);
+        }
+        return bruto;
+    },
+
+    /* Crítica ao vivo, por tipo — cada campo tratado conforme a natureza
+       dele, para reduzir erro de digitação antes de chegar no documento.
+       Vazio não é erro aqui: quem cobra campo vazio é Form.pendencias, só
+       depois do primeiro clique em "Baixar". */
+    validar(campo, valor) {
+        if (valor == null || valor === '') return { valido: true, mensagem: '' };
+
+        if (campo.tipo === 'processo') {
+            const ok = /^\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}$/.test(valor);
+            return ok ? { valido: true, mensagem: '' }
+                      : { valido: false, mensagem: 'Formato incompleto — o padrão é NNNNNNN-DD.AAAA.J.TR.OOOO.' };
+        }
+        /* Só o formato (LNN ou LNN.N) — não confere contra a tabela real da
+           CID-10, que este sistema não embarca. */
+        if (campo.tipo === 'cid') {
+            const ok = /^[A-Z]\d{2}(\.\d)?$/.test(valor);
+            return ok ? { valido: true, mensagem: '' }
+                      : { valido: false, mensagem: 'Formato esperado: uma letra e dois dígitos, com subcategoria opcional (ex.: F41.1).' };
+        }
+        /* 10 dígitos (Ministério da Saúde/SIGTAP) — dígito verificador não
+           conferido, só a quantidade. */
+        if (campo.tipo === 'sigtap') {
+            const ok = /^\d{10}$/.test(valor);
+            return ok ? { valido: true, mensagem: '' }
+                      : { valido: false, mensagem: 'O código SIGTAP tem 10 dígitos.' };
+        }
+        if (campo.tipo === 'numero' || campo.tipo === 'moeda') {
+            const n = Number(valor);
+            if (isNaN(n)) return { valido: false, mensagem: 'Digite um número.' };
+            if (campo.minimo != null && n < campo.minimo) return { valido: false, mensagem: 'Não pode ser menor que ' + campo.minimo + '.' };
+            if (campo.maximo != null && n > campo.maximo) return { valido: false, mensagem: 'Não pode ser maior que ' + campo.maximo + '.' };
+        }
+        return { valido: true, mensagem: '' };
+    },
+
+    /* Lê de volta o valor digitado, já convertido para o tipo do campo. */
+    lerValor(campo) {
+        if (campo.tipo === 'multipla') {
+            const marcados = [];
+            document.querySelectorAll('[data-multipla="' + campo.id + '"]:checked')
+                .forEach(el => marcados.push(el.value));
+            return marcados;
+        }
+        const el = document.getElementById('campo_' + campo.id);
+        if (!el) return undefined;
+        if (campo.tipo === 'booleano') {
+            if (el.value === 'sim') return true;
+            if (el.value === 'nao') return false;
+            return null;
+        }
+        if (campo.tipo === 'numero' || campo.tipo === 'moeda') return el.value === '' ? null : Number(el.value);
+        return el.value;
+    }
+};
+
+/* ==========================================================================
+   [10] FORM — orquestra modelo.campos: monta, revalida mostrarQuando,
+   junta valores e decide o que falta antes de gerar a peça.
+   ========================================================================== */
+const Form = {
+
+    /* Junta o que já havia com o que está no DOM agora. Só sobrescreve
+       campos presentes no modelo — nunca inventa nem apaga o resto do
+       estado (relevante quando o modelo tem campo escondido no momento). */
+    coletarValores(modelo, anterior) {
+        const valores = Object.assign({}, anterior);
+        (modelo.campos || []).forEach(c => {
+            const v = Campos.lerValor(c);
+            if (v !== undefined) valores[c.id] = v;
+        });
+        return valores;
+    },
+
+    /* Obrigatório, visível, vazio e NÃO derivado — a lista que bloqueia
+       "Baixar" e vira a tabela de pendências. Campo escondido por
+       mostrarQuando, ou calculado (derivado), nunca bloqueia: ninguém o
+       digita, então não há o que cobrar do assistente. */
+    pendencias(modelo, valores) {
+        return (modelo.campos || []).filter(c =>
+            c.obrigatorio && !c.derivado && Campos.visivel(c, valores) && Campos.vazio(c, valores[c.id]));
+    },
+
+    /* Campo sem "grupo" cai no grupo padrão "Dados do processo". */
+    GRUPO_PADRAO: 'Dados do processo',
+
+    /* Grupos são só organização visual (título + grade) — todos sempre à
+       vista, sem clicar para abrir. O que muda com a pendência é só o selo
+       no título do grupo, não se ele aparece ou não. */
+    renderizarCampos(modelo, valores, pendentesIds) {
+        const pend = pendentesIds || [];
+        const visiveis = (modelo.campos || []).filter(c => !c.derivado && Campos.visivel(c, valores));
+        const ordem = [], porGrupo = {};
+        visiveis.forEach(c => {
+            const g = c.grupo || Form.GRUPO_PADRAO;
+            if (!porGrupo[g]) { porGrupo[g] = []; ordem.push(g); }
+            porGrupo[g].push(c);
+        });
+
+        return ordem.map(g => {
+            const doGrupo = porGrupo[g];
+            const temPendente = doGrupo.some(c => pend.indexOf(c.id) >= 0);
+            const campos = doGrupo.map(c => Campos.renderizar(
+                Object.assign({}, c, { _pendente: pend.indexOf(c.id) >= 0 }), valores[c.id]
+            )).join('');
+            return '<section class="grupo-campos"><h3>' + U.esc(g) +
+                   (temPendente ? ' ' + U.selo('PENDENTE') : '') + '</h3>' +
+                   '<div class="grade-campos">' + campos + '</div></section>';
+        }).join('');
+    }
+};
+
+/* ==========================================================================
    [12] MARCADOR — parser inline de **negrito** e __itálico__, com escape \.
    Único caminho de código que decide o que é negrito — Previa e Ooxml não
    reimplementam isto, só desenham o run que sai daqui.
@@ -553,7 +901,7 @@ const Montagem = {
 
     montarDocumento(modelo, valores, opcoes) {
         const ctx = {
-            valores: valores || {},
+            valores: Montagem.aplicarDerivados(modelo.campos || [], valores || {}),
             orgao: (opcoes && opcoes.orgao) || {},
             magistrado: (opcoes && opcoes.magistrado) || '',
             hoje: (opcoes && opcoes.hoje) || new Date(),
@@ -565,6 +913,34 @@ const Montagem = {
         const paragrafos = [];
         (modelo.corpo || []).forEach(no => Montagem.montarNo(no, ctx, paragrafos));
         return { paragrafos };
+    },
+
+    /* Campo com "derivado" nunca é digitado — Form nem o mostra (ver
+       Form.renderizarCampos) — é calculado aqui a partir de outros campos já
+       coletados, antes de qualquer texto ser resolvido. Os campos de origem
+       continuam sendo os que bloqueiam "Baixar" quando vazios; o derivado
+       nunca bloqueia nada, porque ninguém o preenche. */
+    aplicarDerivados(campos, valores) {
+        const comDerivados = Object.assign({}, valores);
+        campos.forEach(c => {
+            if (c.derivado) comDerivados[c.id] = Montagem.calcularDerivado(c.derivado, comDerivados);
+        });
+        return comDerivados;
+    },
+
+    calcularDerivado(d, valores) {
+        if (d.tipo === 'tabela') {
+            const chave = (d.origem || []).map(o => valores[o]).join('.');
+            const achado = (d.tabela || {})[chave];
+            return achado !== undefined ? achado : (d.padrao !== undefined ? d.padrao : null);
+        }
+        if (d.tipo === 'diasEntre') {
+            const [de, ate] = d.origem || [];
+            const a = U.dataDeIso(valores[de]), b = U.dataDeIso(valores[ate]);
+            if (!a || !b) return null;
+            return Math.round((b.getTime() - a.getTime()) / 86400000);
+        }
+        return null;
     },
 
     /* As letras são calculadas ANTES de montar qualquer parágrafo, e só a
@@ -666,6 +1042,7 @@ const Montagem = {
         if (v == null || v === '') return '';
         switch (filtro) {
             case 'dataExtenso': return U.dataExtenso(v) || '';
+            case 'horaExtenso': return U.horaExtenso(v) || '';
             case 'maiusculas':  return String(v).toUpperCase();
             case 'sintetico':   return (v && typeof v === 'object' && v.sintetico) || String(v);
             case 'moeda':       return U.moeda(v);
@@ -1156,6 +1533,10 @@ const Testes = {
        (procedencia_mora_en93) — 4 variantes, uma por cor de risco,
        alternando temTutela e tipo_teto para exercitar as duas escolhas
        inline (partes) e a escolha de 4 vias em campos diferentes. */
+    /* prioridade, dias_mora, prazo_dias e prazo_extenso NÃO entram aqui —
+       são campo.derivado agora (Montagem.aplicarDerivados calcula sozinho a
+       partir de cor_risco/data_insercao/data_ajuizamento/graduacao_mora).
+       Omiti-los de propósito é o próprio teste de que a derivação funciona. */
     valoresRotaA(variante) {
         const base = {
             numero_processo: '0700001-11.2026.8.07.0016',
@@ -1173,19 +1554,18 @@ const Testes = {
             codigo_sigtap: '0301010064',
             id_prescricao: '55555555',
             data_ajuizamento: '2026-06-01',
-            dias_mora: '142',
             tese_defesa: 'reserva do possível',
             graduacao_mora: 'moderada'
         };
         const porCor = {
-            vermelho: { cor_risco: 'vermelho', prioridade: 0, temTutela: false, tipo_teto: 'consulta',
-                        id_tutela: '', data_tutela: '', prazo_dias: '30', prazo_extenso: 'trinta' },
-            amarelo:  { cor_risco: 'amarelo', prioridade: 1, temTutela: true, tipo_teto: 'cirurgia',
-                        id_tutela: '66666666', data_tutela: '2026-05-01', prazo_dias: '50', prazo_extenso: 'cinquenta' },
-            verde:    { cor_risco: 'verde', prioridade: 2, temTutela: false, tipo_teto: 'cirurgia',
-                        id_tutela: '', data_tutela: '', prazo_dias: '65', prazo_extenso: 'sessenta e cinco' },
-            azul:     { cor_risco: 'azul', prioridade: 3, temTutela: true, tipo_teto: 'consulta',
-                        id_tutela: '77777777', data_tutela: '2026-04-15', prazo_dias: '80', prazo_extenso: 'oitenta' }
+            vermelho: { cor_risco: 'vermelho', temTutela: false, tipo_teto: 'consulta',
+                        id_tutela: '', data_tutela: '' },
+            amarelo:  { cor_risco: 'amarelo', temTutela: true, tipo_teto: 'cirurgia',
+                        id_tutela: '66666666', data_tutela: '2026-05-01' },
+            verde:    { cor_risco: 'verde', temTutela: false, tipo_teto: 'cirurgia',
+                        id_tutela: '', data_tutela: '' },
+            azul:     { cor_risco: 'azul', temTutela: true, tipo_teto: 'consulta',
+                        id_tutela: '77777777', data_tutela: '2026-04-15' }
         };
         const cor = { a: 'vermelho', b: 'amarelo', c: 'verde', d: 'azul' }[variante] || 'vermelho';
         return Object.assign({}, base, porCor[cor]);
@@ -1204,7 +1584,7 @@ const Testes = {
             id_mp: '99999999'
         };
         const porCausa = {
-            'agendado-antes': { data_agendamento: '2026-02-01', hora_agendamento: '09h30',
+            'agendado-antes': { data_agendamento: '2026-02-01', hora_agendamento: '09:30',
                 unidade_executante: 'UBS 2 de Taguatinga', profissional_executante: 'Dr. João Nunes',
                 chave_confirmacao: 'ABC123', data_ajuizamento: '2026-03-01', id_extrato: '10101010' },
             'falta': { data_agendamento: '2026-02-10', unidade_executante: 'Hospital Regional de Ceilândia',
@@ -1410,6 +1790,30 @@ Testes.def('Cond avalia os operadores da curadoria', () => {
     Testes.ok(Cond.avaliar({ nao: { campo: 'x', igual: 'a' } }, { x: 'b' }), 'nao deveria inverter');
 });
 
+/* --- Derivado ----------------------------------------------------------------- */
+
+Testes.def('Montagem.calcularDerivado — tabela', () => {
+    const d = { tipo: 'tabela', origem: ['cor'], tabela: { vermelho: 0, azul: 3 } };
+    Testes.igual(Montagem.calcularDerivado(d, { cor: 'vermelho' }), 0, 'chave de uma origem não bateu');
+    Testes.igual(Montagem.calcularDerivado(d, { cor: 'verde' }), null, 'chave ausente deveria dar null sem padrao');
+
+    const d2 = { tipo: 'tabela', origem: ['a', 'b'], tabela: { 'x.y': 'ok' } };
+    Testes.igual(Montagem.calcularDerivado(d2, { a: 'x', b: 'y' }), 'ok', 'chave composta (join por ponto) não bateu');
+});
+
+Testes.def('Montagem.calcularDerivado — diasEntre', () => {
+    const d = { tipo: 'diasEntre', origem: ['de', 'ate'] };
+    Testes.igual(Montagem.calcularDerivado(d, { de: '2026-01-01', ate: '2026-01-11' }), 10, 'diferença de dias errada');
+    Testes.igual(Montagem.calcularDerivado(d, { de: '2026-01-01', ate: null }), null, 'data ausente deveria dar null');
+});
+
+Testes.def('Montagem.aplicarDerivados não altera o que já foi digitado', () => {
+    const campos = [{ id: 'p', derivado: { tipo: 'tabela', origem: ['cor'], tabela: { a: 1 } } }];
+    const r = Montagem.aplicarDerivados(campos, { cor: 'a', outro: 'intacto' });
+    Testes.igual(r.p, 1, 'campo derivado não calculou');
+    Testes.igual(r.outro, 'intacto', 'aplicarDerivados não deveria mexer em campos sem derivado');
+});
+
 /* --- Marcador --------------------------------------------------------------- */
 
 Testes.def('Marcador nunca processa o valor digitado', () => {
@@ -1424,6 +1828,87 @@ Testes.def('Marcador aceita escape de ** e __', () => {
     const runs = Marcador.paraRuns('2 \\*\\* 2 = 4, não \\_itálico\\_');
     Testes.igual(runs.map(r => r.texto).join(''), '2 ** 2 = 4, não _itálico_', 'escape não preservou os caracteres');
     Testes.ok(runs.every(r => !r.negrito && !r.italico), 'escape não deveria abrir marcador');
+});
+
+/* --- Campos / Form ----------------------------------------------------------- */
+
+Testes.def('Campos.visivel respeita mostrarQuando', () => {
+    const semCondicao = { id: 'x' };
+    const comCondicao = { id: 'y', mostrarQuando: { campo: 'temX', igual: true } };
+    Testes.ok(Campos.visivel(semCondicao, {}), 'campo sem mostrarQuando deveria ser sempre visível');
+    Testes.ok(!Campos.visivel(comCondicao, { temX: false }), 'campo não deveria aparecer com a condição falsa');
+    Testes.ok(Campos.visivel(comCondicao, { temX: true }), 'campo deveria aparecer com a condição verdadeira');
+});
+
+Testes.def('Campos.vazio distingue tipo por tipo', () => {
+    Testes.ok(Campos.vazio({ tipo: 'texto' }, ''), 'string vazia deveria ser vazia');
+    Testes.ok(Campos.vazio({ tipo: 'texto' }, null), 'null deveria ser vazio');
+    Testes.ok(!Campos.vazio({ tipo: 'texto' }, 'a'), 'string preenchida não deveria ser vazia');
+    Testes.ok(Campos.vazio({ tipo: 'multipla' }, []), 'array vazio deveria ser vazio em multipla');
+    Testes.ok(!Campos.vazio({ tipo: 'multipla' }, ['a']), 'array com item não deveria ser vazio');
+    Testes.ok(Campos.vazio({ tipo: 'booleano' }, null), 'booleano não respondido deveria ser vazio');
+    Testes.ok(!Campos.vazio({ tipo: 'booleano' }, false), 'false é uma resposta, não deveria ser vazio');
+    Testes.ok(!Campos.vazio({ tipo: 'numero' }, 0), '0 é uma resposta, não deveria ser vazio');
+});
+
+Testes.def('Campos.renderizar produz o controle certo por tipo', () => {
+    Testes.ok(Campos.renderizar({ id: 'a', tipo: 'texto', rotulo: 'A', ajuda: 'ajuda' }, 'valor')
+        .indexOf('<input type="text"') >= 0, 'texto deveria virar input text');
+    Testes.ok(Campos.renderizar({ id: 'b', tipo: 'data', rotulo: 'B', ajuda: 'ajuda' }, '')
+        .indexOf('<input type="date"') >= 0, 'data deveria virar input date');
+    Testes.ok(Campos.renderizar({ id: 'c', tipo: 'booleano', rotulo: 'C', ajuda: 'ajuda' }, true)
+        .indexOf('value="sim" selected') >= 0, 'booleano true deveria vir com "sim" selecionado');
+    const selecao = Campos.renderizar({ id: 'd', tipo: 'selecao', rotulo: 'D', ajuda: 'ajuda',
+        opcoes: [{ valor: 'x', rotulo: 'X' }] }, 'x');
+    Testes.ok(selecao.indexOf('<select') >= 0 && selecao.indexOf('value="x" selected') >= 0,
+              'selecao deveria marcar a opção escolhida');
+    Testes.ok(Campos.renderizar({ id: 'e', tipo: 'texto', rotulo: 'E', ajuda: 'ajuda', obrigatorio: true }, '')
+        .indexOf('obrig') >= 0, 'campo obrigatório deveria marcar o asterisco');
+});
+
+Testes.def('Form.pendencias só acusa obrigatório, visível e vazio', () => {
+    const modelo = { campos: [
+        { id: 'a', tipo: 'texto', rotulo: 'A', obrigatorio: true },
+        { id: 'b', tipo: 'texto', rotulo: 'B', obrigatorio: false },
+        { id: 'c', tipo: 'texto', rotulo: 'C', obrigatorio: true, mostrarQuando: { campo: 'a', igual: 'mostra' } }
+    ] };
+    Testes.igual(Form.pendencias(modelo, {}).map(c => c.id).join(','), 'a',
+                 'só "a" deveria pendente (b não é obrigatório, c está escondido)');
+    Testes.igual(Form.pendencias(modelo, { a: 'mostra' }).map(c => c.id).join(','), 'c',
+                 '"a" preenchido some da lista, "c" aparece porque ficou visível e vazio');
+    Testes.igual(Form.pendencias(modelo, { a: 'mostra', c: 'ok' }).length, 0,
+                 'com os dois preenchidos não deveria sobrar pendência');
+});
+
+Testes.def('Campos.mascarar e Campos.validar — processo e cid', () => {
+    const processo = { tipo: 'processo' };
+    Testes.igual(Campos.mascarar(processo, '0700000062025807 0016'),
+                 '0700000-06.2025.8.07.0016', 'máscara do processo não formatou como esperado');
+    Testes.ok(Campos.validar(processo, '0700000-06.2025.8.07.0016').valido, 'processo completo deveria ser válido');
+    Testes.ok(!Campos.validar(processo, '0700000-06.2025').valido, 'processo incompleto não deveria ser válido');
+
+    const cid = { tipo: 'cid' };
+    Testes.igual(Campos.mascarar(cid, 'f411'), 'F41.1', 'máscara do CID não formatou como esperado');
+    Testes.igual(Campos.mascarar(cid, 'n18'), 'N18', 'CID sem subcategoria não deveria ganhar ponto');
+    Testes.ok(Campos.validar(cid, 'F41.1').valido, 'CID com subcategoria deveria ser válido');
+    Testes.ok(Campos.validar(cid, 'N18').valido, 'CID sem subcategoria deveria ser válido');
+    Testes.ok(!Campos.validar(cid, 'N1').valido, 'CID com um dígito só não deveria ser válido');
+    Testes.ok(!Campos.validar(cid, '418').valido, 'CID sem a letra não deveria ser válido');
+
+    Testes.igual(Campos.mascarar({ tipo: 'texto' }, 'qualquer coisa'), 'qualquer coisa',
+                 'tipo sem máscara não deveria alterar o valor');
+});
+
+Testes.def('Campos.mascarar e Campos.validar — sigtap e U.horaExtenso', () => {
+    const sigtap = { tipo: 'sigtap' };
+    Testes.igual(Campos.mascarar(sigtap, '03.01.01.00-64'), '0301010064',
+                 'máscara do SIGTAP deveria só deixar os 10 dígitos');
+    Testes.ok(Campos.validar(sigtap, '0301010064').valido, 'SIGTAP com 10 dígitos deveria ser válido');
+    Testes.ok(!Campos.validar(sigtap, '030101006').valido, 'SIGTAP com 9 dígitos não deveria ser válido');
+
+    Testes.igual(U.horaExtenso('09:30'), '9h30', 'hora com minuto não redondo não bateu');
+    Testes.igual(U.horaExtenso('14:00'), '14h', 'hora em ponto deveria omitir os minutos');
+    Testes.igual(U.horaExtenso('lixo'), null, 'formato inválido deveria dar null');
 });
 
 /* --- Montagem: grupoAlineas ------------------------------------------------- */
@@ -1568,6 +2053,18 @@ Testes.def('Rota B — modelo real gera peça coerente', () => {
             }
         });
 
+        /* prioridade e prazo_dias/prazo_extenso são derivados — não estão em
+           valoresRotaA, então só aparecem certos se Montagem.aplicarDerivados
+           calculou. graduacao_mora fixa em "moderada" no fixture. */
+        const prioridadePorCor = { vermelho: 0, amarelo: 1, verde: 2, azul: 3 };
+        Testes.ok(texto.indexOf('prioridade ' + prioridadePorCor[valores.cor_risco]) >= 0,
+                  'prioridade derivada de "' + valores.cor_risco + '" não bateu (' + variante + ')');
+
+        const prazoPorCor = { vermelho: '30 (trinta)', amarelo: '50 (cinquenta)',
+                               verde: '65 (sessenta e cinco)', azul: '80 (oitenta)' };
+        Testes.ok(texto.indexOf(prazoPorCor[valores.cor_risco] + ' dias') >= 0,
+                  'prazo derivado de "' + valores.cor_risco + '" (graduação moderada) não bateu (' + variante + ')');
+
         Testes.ok(texto.indexOf('a) determino a intimação') >= 0, 'alínea "a" não numerou como esperado (' + variante + ')');
         Testes.ok(texto.indexOf('b) dê-se vista imediata') >= 0, 'alínea "b" não numerou como esperado (' + variante + ')');
         Testes.ok(texto.indexOf('c) certificado o trânsito em julgado e cumprida') >= 0,
@@ -1657,9 +2154,48 @@ Testes.def('Rota B — modelo real gera peça coerente', () => {
 });
 
 /* ==========================================================================
+   [18] VITRINE — um cartão por modelo em MODELOS, para o assistente escolher
+   qual usar. Lê metadados.titulo e aplicabilidade; não filtra nem busca
+   ainda — com 4 modelos, uma lista já é a interface.
+   ========================================================================== */
+const Vitrine = {
+
+    /* 4 tons suaves, de baixa saturação — só para diferenciar um cartão do
+       outro à distância, não para carregar a tela. Ciclam por índice; com
+       mais de 4 modelos, a cor se repete, e não tem problema nisso. */
+    CORES: 4,
+
+    renderizar() {
+        if (!MODELOS.length) {
+            return '<p class="legenda">Nenhum modelo carregado — rode <code>npm run build</code> depois de ' +
+                   'acrescentar um arquivo em <code>dados/modelos/</code>.</p>';
+        }
+        return '<div class="vitrine-grade">' + MODELOS.map(Vitrine.cartao).join('') + '</div>';
+    },
+
+    cartao(modelo, indice) {
+        const md = modelo.metadados || {};
+        const pontos = (modelo.aplicabilidade || []).map(a => '<li>' + U.esc(a) + '</li>').join('');
+        const cor = (indice % Vitrine.CORES) + 1;
+        return '<article class="modelo-cartao cor-' + cor + '">' +
+               '<h3>' + U.esc(md.titulo || modelo.id) + '</h3>' +
+               (pontos ? '<ul>' + pontos + '</ul>' : '') +
+               '<div class="linha-btn"><button class="btn" data-usar-modelo="' + U.esc(modelo.id) + '">' +
+               'Usar este modelo</button></div>' +
+               '</article>';
+    }
+};
+
+/* ==========================================================================
    [23] APP — orquestração.
    ========================================================================== */
 const App = {
+
+    /* Único estado mutável da interface: qual modelo está aberto no Form e o
+       que já foi digitado nele. tentouGerar só vira true depois do primeiro
+       clique em "Baixar" — antes disso a tela não mostra campo como
+       pendente, para não recepcionar o assistente com tudo em vermelho. */
+    estado: { modeloId: null, valores: {}, tentouGerar: false },
 
     iniciar() {
         document.getElementById('btnTema').addEventListener('click', App.alternarTema);
@@ -1680,10 +2216,46 @@ const App = {
         let h = '';
 
         h += '<section class="cartao">' +
+             '<span class="sobrancelha">Minuta</span>' +
+             '<h2>Escolha o tipo de peça</h2>' +
+             '<p class="legenda">' + MODELOS.length + ' modelo(s) na curadoria oficial. ' +
+             'Nada do que você digitar sai deste navegador antes de você clicar em baixar.</p>' +
+             '<div id="vitrine">' + Vitrine.renderizar() + '</div>' +
+             '</section>';
+
+        h += '<section class="cartao" id="cartaoForm" hidden>' +
+             '<span class="sobrancelha">Formulário</span>' +
+             '<h2 id="formTitulo"></h2>' +
+             '<p class="legenda" id="formLegenda"></p>' +
+             '<div id="formCampos"></div>' +
+             '<div id="formPendencias"></div>' +
+             '<div class="linha-btn">' +
+                '<button class="btn" id="btnGerarForm" ' +
+                    'title="Confere se falta algum campo obrigatório e, se estiver tudo preenchido, monta o .docx e baixa.">' +
+                    'Baixar minuta (.docx)</button>' +
+                '<button class="btn secundario" id="btnPreviaForm" ' +
+                    'title="Mostra na tela o conteúdo atual, mesmo com campos pendentes.">Ver prévia</button>' +
+                '<button class="btn secundario" id="btnVoltarVitrine" ' +
+                    'title="Volta para a lista de modelos, sem perder o que você já digitou neste formulário.">' +
+                    'Voltar à lista</button>' +
+             '</div>' +
+             '<div id="saidaGerarForm"></div>' +
+             '</section>';
+
+        h += '<section class="cartao" id="cartaoPrevia" hidden>' +
+             '<span class="sobrancelha">Prévia</span>' +
+             '<h2>Como o documento sai</h2>' +
+             '<p class="legenda">Confira o texto da minuta antes de baixar — os mesmos parágrafos, na mesma ' +
+             'ordem, com o mesmo negrito, que vão para o <code>.docx</code>. Serve para revisar os dados digitados ' +
+             '(nome, datas, valores) e o texto das cláusulas escolhidas antes de assinar, sem precisar abrir o Word.</p>' +
+             '<div class="folha" id="folha"></div>' +
+             '</section>';
+
+        h += '<section class="cartao">' +
              '<span class="sobrancelha">Fase 1 — conferência do pacote</span>' +
              '<h2>Minuta de conferência ' + U.selo('CURADO') + '</h2>' +
              '<p class="legenda">Gera um <code>.docx</code> de texto fixo com a formatação da vara — ' +
-             'Times New Roman 12, entrelinha 1,5, A4 com as margens da peça real. ' +
+             'Cambria 14, entrelinha 1,4, A4 com as margens da peça real. ' +
              'Serve para responder à única pergunta que importa antes de qualquer outra coisa: ' +
              '<strong>o PJe aceita o arquivo?</strong></p>' +
              '<div class="linha-btn">' +
@@ -1698,15 +2270,6 @@ const App = {
                        'do parágrafo, recuo pendente da alínea e um parágrafo de instrução que não pode vazar para a peça.') +
              '</div>' +
              '<div id="saidaGerar"></div>' +
-             '</section>';
-
-        h += '<section class="cartao" id="cartaoPrevia" hidden>' +
-             '<span class="sobrancelha">Prévia</span>' +
-             '<h2>Como o documento sai</h2>' +
-             '<p class="legenda">Renderização do mesmo conteúdo enviado ao arquivo. ' +
-             'A partir da Fase 2, esta prévia e o <code>.docx</code> passam a nascer da mesma estrutura, ' +
-             'e uma divergência entre as duas reprova o build.</p>' +
-             '<div class="folha" id="folha"></div>' +
              '</section>';
 
         h += '<section class="cartao">' +
@@ -1724,11 +2287,172 @@ const App = {
 
         alvo.innerHTML = h;
 
+        document.getElementById('vitrine').addEventListener('click', App.aoClicarVitrine);
+        document.getElementById('formCampos').addEventListener('change', App.aoMudarCampoForm);
+        document.getElementById('formCampos').addEventListener('input', App.aoDigitarCampo);
+        document.getElementById('btnGerarForm').addEventListener('click', App.gerarForm);
+        document.getElementById('btnPreviaForm').addEventListener('click', App.previaForm);
+        document.getElementById('btnVoltarVitrine').addEventListener('click', App.voltarVitrine);
+
         document.getElementById('btnGerar').addEventListener('click', App.gerar);
-        document.getElementById('btnPrevia').addEventListener('click', App.previa);
+        document.getElementById('btnPrevia').addEventListener('click', App.previaExemplo);
         document.getElementById('btnTestes').addEventListener('click', App.testar);
 
         if (depurar) App.testar();
+    },
+
+    /* --- Vitrine → Form --------------------------------------------------- */
+
+    aoClicarVitrine(ev) {
+        const btn = ev.target.closest('[data-usar-modelo]');
+        if (!btn) return;
+        App.abrirModelo(btn.getAttribute('data-usar-modelo'));
+    },
+
+    abrirModelo(id) {
+        const modelo = MODELOS.find(m => m.id === id);
+        if (!modelo) return;
+        App.estado = { modeloId: id, valores: {}, tentouGerar: false };
+        App.renderizarForm(modelo);
+        const cartao = document.getElementById('cartaoForm');
+        cartao.hidden = false;
+        cartao.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+
+    voltarVitrine() {
+        document.getElementById('cartaoForm').hidden = true;
+        document.getElementById('vitrine').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+
+    renderizarForm(modelo) {
+        const md = modelo.metadados || {};
+        document.getElementById('formTitulo').textContent = md.titulo || modelo.id;
+        document.getElementById('formLegenda').textContent =
+            (modelo.aplicabilidade || []).join(' ') || 'Preencha os campos abaixo.';
+
+        const pendentesIds = App.estado.tentouGerar
+            ? Form.pendencias(modelo, App.estado.valores).map(c => c.id) : [];
+        document.getElementById('formCampos').innerHTML = Form.renderizarCampos(modelo, App.estado.valores, pendentesIds);
+    },
+
+    /* "change", não "input": os campos que controlam mostrarQuando são
+       select/checkbox (disparam na hora); texto livre só reflete na
+       próxima vez que perder o foco — reconstruir a tela a cada tecla
+       digitada derrubaria o cursor do campo de texto sem necessidade. */
+    aoMudarCampoForm() {
+        const modelo = MODELOS.find(m => m.id === App.estado.modeloId);
+        if (!modelo) return;
+        App.estado.valores = Form.coletarValores(modelo, App.estado.valores);
+        App.renderizarForm(modelo);
+    },
+
+    /* "input": crítica ao vivo, campo por campo, sem reconstruir a tela —
+       só essa div. Mantém o cursor onde o assistente está digitando, ao
+       contrário do "change" acima (que precisa reconstruir para
+       mostrarQuando reagir, mas só troca de estado depois que o campo já
+       perdeu o foco). */
+    aoDigitarCampo(ev) {
+        const el = ev.target;
+        if (!el.name) return;
+        const modelo = MODELOS.find(m => m.id === App.estado.modeloId);
+        if (!modelo) return;
+        const campo = (modelo.campos || []).find(c => c.id === el.name);
+        if (!campo) return;
+
+        /* Campos.mascarar devolve o bruto sem alterar quando o tipo não tem
+           máscara — chamar sempre aqui é seguro e evita duplicar a lista de
+           quais tipos mascaram entre este arquivo e Campos. */
+        const posAntes = el.selectionStart, tamAntes = el.value.length;
+        const mascarado = Campos.mascarar(campo, el.value);
+        if (mascarado !== el.value) {
+            el.value = mascarado;
+            const delta = el.value.length - tamAntes;
+            el.selectionStart = el.selectionEnd = Math.max(0, posAntes + delta);
+        }
+
+        const r = Campos.validar(campo, el.value);
+        const wrap = el.closest('.campo');
+        if (wrap) wrap.classList.toggle('invalido', !r.valido);
+        const erro = document.getElementById('erro_' + campo.id);
+        if (erro) erro.textContent = r.mensagem;
+    },
+
+    orgaoDoModelo(modelo) {
+        const orgaos = DADOS.orgaos.orgaos || {};
+        return orgaos[(modelo.metadados || {}).orgao] || orgaos[CONFIG.orgaoPadrao];
+    },
+
+    /* --- Prévia (compartilhada entre o Form e o card de conferência) ------ */
+
+    mostrarPrevia(doc) {
+        document.getElementById('folha').innerHTML = Previa.renderizar(doc);
+        document.getElementById('cartaoPrevia').hidden = false;
+        document.getElementById('cartaoPrevia').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+
+    previaExemplo() {
+        App.mostrarPrevia(Testes.docExemplo());
+    },
+
+    previaForm() {
+        const modelo = MODELOS.find(m => m.id === App.estado.modeloId);
+        if (!modelo) return;
+        const doc = Montagem.montarDocumento(modelo, App.estado.valores,
+            { orgao: App.orgaoDoModelo(modelo), hoje: new Date() });
+        App.mostrarPrevia(doc);
+    },
+
+    /* --- Geração ------------------------------------------------------------ */
+
+    async gerarForm() {
+        const modelo = MODELOS.find(m => m.id === App.estado.modeloId);
+        if (!modelo) return;
+
+        App.estado.valores = Form.coletarValores(modelo, App.estado.valores);
+        App.estado.tentouGerar = true;
+        App.renderizarForm(modelo);
+
+        const pendentes = Form.pendencias(modelo, App.estado.valores);
+        const saidaPend = document.getElementById('formPendencias');
+        if (pendentes.length) {
+            saidaPend.innerHTML = '<div class="aviso-caixa">Faltam preencher: <ul class="pendencias">' +
+                pendentes.map(c => '<li>' + U.esc(c.rotulo) + '</li>').join('') + '</ul></div>';
+            return;
+        }
+        saidaPend.innerHTML = '';
+
+        const btn = document.getElementById('btnGerarForm');
+        const saida = document.getElementById('saidaGerarForm');
+        btn.disabled = true;
+        U.escXml.removidos = 0;
+
+        try {
+            const doc = Montagem.montarDocumento(modelo, App.estado.valores,
+                { orgao: App.orgaoDoModelo(modelo), hoje: new Date() });
+            const md = modelo.metadados || {};
+            const meta = {
+                titulo: md.titulo || modelo.id,
+                assunto: '',
+                tipoPeca: md.tipoPeca || 'peca',
+                processoParaNome: App.estado.valores.numero_processo,
+                geradoEm: new Date()
+            };
+            const b = await Docx.baixar(doc, meta);
+            const kb = (b.size / 1024).toFixed(1);
+            let m = '<div class="aviso-caixa">Arquivo gerado — <strong>' + kb + ' KB</strong>. ' +
+                    'Abra no Word ou no LibreOffice antes de anexar ao processo no PJe.';
+            if (U.escXml.removidos > 0) {
+                m += '<br><br>Foram retirados <strong>' + U.escXml.removidos + '</strong> caracteres invisíveis ' +
+                     'que o formato do Word não aceita. O texto visível não mudou.';
+            }
+            saida.innerHTML = m + '</div>';
+        } catch (e) {
+            /* Nunca expor a mensagem técnica: ela não ajuda o assistente e assusta. */
+            saida.innerHTML = '<div class="aviso-caixa">Não foi possível montar o arquivo neste navegador. ' +
+                              'Verifique se o sistema foi aberto a partir do arquivo HTML completo entregue pelo gabinete.</div>';
+        } finally {
+            btn.disabled = false;
+        }
     },
 
     async gerar() {
@@ -1755,13 +2479,6 @@ const App = {
         } finally {
             btn.disabled = false;
         }
-    },
-
-    previa() {
-        const doc = Testes.docExemplo();
-        document.getElementById('folha').innerHTML = Previa.renderizar(doc);
-        document.getElementById('cartaoPrevia').hidden = false;
-        document.getElementById('cartaoPrevia').scrollIntoView({ behavior: 'smooth', block: 'start' });
     },
 
     async testar() {

@@ -32,56 +32,56 @@
   "campos": [
     { "id": "numero_processo", "tipo": "processo", "rotulo": "Número do processo (CNJ)",
       "ajuda": "Número único do processo no formato CNJ, usado na identificação da peça e no cabeçalho da minuta.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Partes e objeto" },
 
     { "id": "autor_nome", "tipo": "parte", "rotulo": "Nome da parte autora",
       "ajuda": "Nome completo da pessoa em favor de quem o Distrito Federal foi condenado; aparece no cabeçalho.",
-      "obrigatorio": true, "sensivel": true },
+      "obrigatorio": true, "sensivel": true, "grupo": "Partes e objeto" },
 
     { "id": "objeto", "tipo": "texto", "rotulo": "Objeto da prestação de saúde",
       "ajuda": "Descreva como substantivo simples (ex.: \"exame de ressonância magnética\"), sem artigo inicial — o texto do modelo já traz \"consistente em\" antes do campo.",
-      "obrigatorio": true, "sensivel": true },
+      "obrigatorio": true, "sensivel": true, "grupo": "Partes e objeto" },
 
     { "id": "id_sentenca", "tipo": "texto", "rotulo": "Id. da sentença condenatória",
       "ajuda": "Identificador do documento no PJe referente à sentença de mérito que condenou o Distrito Federal, citada no relatório.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Título e cumprimento" },
 
     { "id": "data_sentenca", "tipo": "data", "rotulo": "Data da sentença condenatória",
       "ajuda": "Data da sentença de mérito que condenou o Distrito Federal, citada no relatório junto com o Id.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Título e cumprimento" },
 
     { "id": "id_decisao_prazo", "tipo": "texto", "rotulo": "Id. da decisão que fixou prazo no cumprimento",
       "ajuda": "Identificador do documento no PJe referente à decisão que iniciou o cumprimento de sentença fixando prazo.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Título e cumprimento" },
 
     { "id": "data_cumprimento", "tipo": "data", "rotulo": "Data da realização do procedimento",
       "ajuda": "Data em que o procedimento foi efetivamente realizado no curso da execução, comprovando a satisfação da obrigação.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Título e cumprimento" },
 
     { "id": "id_defensoria", "tipo": "texto", "rotulo": "Id. da informação da Defensoria Pública",
       "ajuda": "Identificador do documento no PJe em que a Defensoria Pública informou a realização do procedimento.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Instrução processual" },
 
     { "id": "id_oficio_ses", "tipo": "texto", "rotulo": "Id. do ofício da Secretaria de Saúde",
       "ajuda": "Identificador do documento no PJe em que a Secretaria de Estado de Saúde confirmou a realização do procedimento.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Instrução processual" },
 
     { "id": "id_mp", "tipo": "texto", "rotulo": "Id. da manifestação do Ministério Público",
       "ajuda": "Identificador do documento no PJe referente à manifestação do Ministério Público pela extinção, citado no relatório.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Instrução processual" },
 
     { "id": "temConstricao", "tipo": "booleano", "rotulo": "Houve constrição (bloqueio, penhora ou astreintes)?",
       "ajuda": "Define se a fundamentação, o dispositivo e os comandos cartorários incluem o levantamento da constrição e a revogação de multa.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Constrição" },
 
     { "id": "id_constricao", "tipo": "texto", "rotulo": "Id. da decisão que fixou a constrição",
       "ajuda": "Identificador do documento no PJe referente à decisão que determinou o bloqueio, a penhora ou as astreintes a levantar.",
-      "obrigatorio": false, "sensivel": false,
+      "obrigatorio": false, "sensivel": false, "grupo": "Constrição",
       "mostrarQuando": { "campo": "temConstricao", "igual": true } },
 
     { "id": "valor_constricao", "tipo": "moeda", "rotulo": "Valor da constrição a levantar",
       "ajuda": "Valor em reais bloqueado ou penhorado, citado no comando de expedição do necessário ao levantamento.",
-      "obrigatorio": false, "sensivel": false,
+      "obrigatorio": false, "sensivel": false, "grupo": "Constrição",
       "mostrarQuando": { "campo": "temConstricao", "igual": true } }
   ],
 

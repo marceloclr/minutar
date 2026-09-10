@@ -31,27 +31,27 @@
   "campos": [
     { "id": "numero_processo", "tipo": "processo", "rotulo": "Número do processo (CNJ)",
       "ajuda": "Número único do processo no formato CNJ, usado na identificação da peça e no cabeçalho da minuta.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Partes e objeto" },
 
     { "id": "autor_nome", "tipo": "parte", "rotulo": "Nome da parte autora",
       "ajuda": "Nome completo da pessoa que ajuizou a ação; aparece no cabeçalho e no corpo da sentença.",
-      "obrigatorio": true, "sensivel": true },
+      "obrigatorio": true, "sensivel": true, "grupo": "Partes e objeto" },
 
     { "id": "objeto", "tipo": "texto", "rotulo": "Objeto da prestação de saúde",
       "ajuda": "Descrição do procedimento, exame, cirurgia ou tratamento pedido — o mesmo texto da solicitação no SISREG.",
-      "obrigatorio": true, "sensivel": true },
+      "obrigatorio": true, "sensivel": true, "grupo": "Partes e objeto" },
 
-    { "id": "diagnostico", "tipo": "texto", "rotulo": "Diagnóstico ou CID",
-      "ajuda": "Diagnóstico ou condição clínica que justifica o pedido; usado para fundamentar a necessidade da prestação.",
-      "obrigatorio": true, "sensivel": true },
+    { "id": "diagnostico", "tipo": "texto", "rotulo": "Diagnóstico",
+      "ajuda": "Descrição da condição clínica que justifica o pedido (não um código CID — o HTML original desta rota só pede a descrição, sem código separado).",
+      "obrigatorio": true, "sensivel": true, "grupo": "Partes e objeto" },
 
     { "id": "numero_solicitacao", "tipo": "texto", "rotulo": "Número da solicitação no SISREG",
       "ajuda": "Identificador da solicitação na regulação (SISREG III), citado no relatório para individualizar o pedido.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Partes e objeto" },
 
     { "id": "cor_risco", "tipo": "selecao", "rotulo": "Classificação de risco",
       "ajuda": "Cor atribuída pela regulação conforme a gravidade clínica; usada para descrever a prioridade do caso.",
-      "obrigatorio": true, "sensivel": false,
+      "obrigatorio": true, "sensivel": false, "grupo": "Partes e objeto",
       "opcoes": [
         { "valor": "vermelho", "rotulo": "Vermelho — prioridade 0" },
         { "valor": "amarelo",  "rotulo": "Amarelo — prioridade 1" },
@@ -61,31 +61,31 @@
 
     { "id": "data_tutela", "tipo": "data", "rotulo": "Data da concessão da tutela",
       "ajuda": "Data em que a tutela de urgência foi deferida; aparece por extenso no relatório e na fundamentação.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Tutela e cumprimento" },
 
     { "id": "id_tutela", "tipo": "texto", "rotulo": "Id. da decisão que concedeu a tutela",
       "ajuda": "Identificador do documento no PJe referente à decisão que concedeu a tutela, citado como referência processual.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Tutela e cumprimento" },
 
     { "id": "data_cumprimento", "tipo": "data", "rotulo": "Data da realização do procedimento",
       "ajuda": "Data em que o procedimento de saúde foi efetivamente realizado, comprovando o cumprimento da obrigação.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Tutela e cumprimento" },
 
     { "id": "id_cumprimento", "tipo": "texto", "rotulo": "Id. do documento que comprova o cumprimento",
       "ajuda": "Identificador do documento no PJe que comprova a realização do procedimento, citado como referência processual.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Tutela e cumprimento" },
 
     { "id": "id_contestacao", "tipo": "texto", "rotulo": "Id. da contestação",
       "ajuda": "Identificador do documento no PJe referente à contestação apresentada pelo Distrito Federal, citado no relatório.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Instrução processual" },
 
     { "id": "situacao_replica", "tipo": "texto", "rotulo": "Situação da réplica",
       "ajuda": "Frase curta dizendo se houve réplica e sua referência (ex.: \"houve réplica, Id. 123456\"), inserida no relatório.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Instrução processual" },
 
     { "id": "id_mp", "tipo": "texto", "rotulo": "Id. do parecer do Ministério Público",
       "ajuda": "Identificador do documento no PJe referente à manifestação do Ministério Público, citado no relatório.",
-      "obrigatorio": true, "sensivel": false }
+      "obrigatorio": true, "sensivel": false, "grupo": "Instrução processual" }
   ],
 
   "corpo": [

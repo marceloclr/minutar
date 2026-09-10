@@ -22,7 +22,7 @@ const JSZIP_SHA256 = 'acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c9
 const MARCADORES = ['/*@MODELOS@*/', '/*@DADOS@*/', '/*@JSZIP@*/'];
 const ESQUEMA_MODELO = 1;
 
-const TIPOS_CAMPO = ['processo', 'texto', 'textoLongo', 'data', 'numero',
+const TIPOS_CAMPO = ['processo', 'cid', 'sigtap', 'hora', 'texto', 'textoLongo', 'data', 'numero',
                      'moeda', 'selecao', 'multipla', 'booleano', 'parte'];
 
 const erros = [], avisos = [];
@@ -288,7 +288,7 @@ arquivos.forEach(arquivo => {
     /* --- Corpo --- */
     const idsNo = new Set();
     const usados = new Set();
-    const FILTROS = ['cnj', 'dataExtenso', 'sintetico', 'maiusculas', 'moeda', 'percentual', 'extenso'];
+    const FILTROS = ['cnj', 'dataExtenso', 'horaExtenso', 'sintetico', 'maiusculas', 'moeda', 'percentual', 'extenso'];
     const estilosValidos = fmt && fmt.estilos ? Object.keys(fmt.estilos) : [];
 
     /* Um texto curado isolado — de no.texto, de um caso/padrao de escolha, ou
@@ -328,6 +328,7 @@ arquivos.forEach(arquivo => {
             const def = porId.get(alvo);
             if (filtro === 'sintetico' && def.tipo !== 'parte') erro(onde, '|sintetico só se aplica a campo do tipo parte');
             if (filtro === 'dataExtenso' && def.tipo !== 'data') erro(onde, '|dataExtenso só se aplica a campo de data');
+            if (filtro === 'horaExtenso' && def.tipo !== 'hora') erro(onde, '|horaExtenso só se aplica a campo de hora');
             if (filtro === 'cnj' && def.tipo !== 'processo') erro(onde, '|cnj só se aplica a campo do tipo processo');
             if (filtro === 'moeda' && ['moeda', 'numero'].indexOf(def.tipo) < 0) erro(onde, '|moeda só se aplica a valor numérico');
         });
@@ -422,6 +423,37 @@ arquivos.forEach(arquivo => {
         validarCond(c.mostrarQuando, onde);
         if (c.mostrarQuando.campo === c.id) erro(onde, 'campo condicionado a si mesmo');
         if (c.mostrarQuando.campo) usados.add(c.mostrarQuando.campo);
+    });
+
+    /* derivado, também depois de conhecer todos os campos: a origem pode vir
+       antes ou depois no arquivo. Campo derivado nunca aparece no Form (ver
+       Montagem.aplicarDerivados/Form.renderizarCampos) — quem bloqueia
+       "Baixar" quando vazio é a origem, não ele. */
+    const DERIVADO_TIPOS = ['tabela', 'diasEntre'];
+    campos.forEach(c => {
+        if (!c.derivado) return;
+        const onde = rel + ' campo "' + c.id + '".derivado';
+        const d = c.derivado;
+
+        if (DERIVADO_TIPOS.indexOf(d.tipo) < 0) { erro(onde, 'tipo desconhecido: ' + d.tipo); return; }
+        if (!Array.isArray(d.origem) || !d.origem.length) { erro(onde, '"origem" precisa ser uma lista não vazia'); return; }
+        d.origem.forEach(o => {
+            if (!porId.has(o)) erro(onde, 'origem "' + o + '" não existe entre os campos');
+            else usados.add(o);
+        });
+
+        if (d.tipo === 'tabela') {
+            if (!d.tabela || typeof d.tabela !== 'object' || Array.isArray(d.tabela)) {
+                erro(onde, '"tabela" precisa ser um objeto chave → valor');
+            }
+        }
+        if (d.tipo === 'diasEntre') {
+            if (d.origem.length !== 2) erro(onde, '"diasEntre" precisa de exatamente 2 campos em "origem"');
+            d.origem.forEach(o => {
+                const def = porId.get(o);
+                if (def && def.tipo !== 'data') erro(onde, 'origem "' + o + '" precisa ser do tipo data para diasEntre');
+            });
+        }
     });
 
     /* Campo órfão: aviso, porque pode ser preparação. Mas obrigar alguém a

@@ -1,6 +1,6 @@
 {
   "_nota": "Convertido de ~/Documentos/GitHub/Gerador de Sentencas/MODELO_SENTENCA_PROCEDENCIA_En93.html em 2026-09-10. Texto transcrito literalmente. Decisão do usuário: comandos 'c' e 'd' mantidos os dois (sobreposição de sentido preservada), só corrigida a pontuação de 'c' (ponto final -> ponto e vírgula). 'objeto' não usa filtro |sintetico nem inclui artigo — ver ajuda do campo.",
-  "_derivacaoNaoImplementada": "prioridade (a partir de cor_risco) e prazo_dias/prazo_extenso (a partir de cor_risco + graduacao_mora) são, na peça original, valores DERIVADOS por tabela — mas o motor ainda não tem um nó de tabela/derivação (só escolha/quando sobre valores digitados). Ficaram como campos digitados, com a tabela original inteira na ajuda, replicando exatamente como o assistente já preenchia o HTML estático. Promover para 'Derivado' de verdade é trabalho de fase posterior.",
+  "_derivados": "prioridade, dias_mora, prazo_dias e prazo_extenso são calculados (campo.derivado), não digitados — acrescentado em 2026-09-10 a pedido do usuário, depois de testar o formulário e notar que eram decorrentes de campos já preenchidos (cor_risco, data_insercao, data_ajuizamento, graduacao_mora). 'limitrofe' em graduacao_mora só tem valor definido para 'azul' na tabela de prazo_dias/prazo_extenso — se escolhido para amarelo/verde, o prazo sai em branco no texto (lacuna visível, não um número errado), porque o HTML original só descreve esse caso especial para o azul.",
 
   "esquema": 1,
   "id": "procedencia_mora_en93",
@@ -33,35 +33,36 @@
   "campos": [
     { "id": "numero_processo", "tipo": "processo", "rotulo": "Número do processo (CNJ)",
       "ajuda": "Número único do processo no formato CNJ, usado na identificação da peça e no cabeçalho da minuta.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Partes e objeto" },
 
     { "id": "autor_nome", "tipo": "parte", "rotulo": "Nome da parte autora",
       "ajuda": "Nome completo da pessoa que ajuizou a ação; aparece no cabeçalho e no comando de providenciar o procedimento.",
-      "obrigatorio": true, "sensivel": true },
+      "obrigatorio": true, "sensivel": true, "grupo": "Partes e objeto" },
 
     { "id": "diagnostico", "tipo": "texto", "rotulo": "Diagnóstico",
       "ajuda": "Diagnóstico ou condição clínica da parte autora, citado no relatório junto com o CID.",
-      "obrigatorio": true, "sensivel": true },
+      "obrigatorio": true, "sensivel": true, "grupo": "Partes e objeto" },
 
-    { "id": "cid", "tipo": "texto", "rotulo": "CID",
-      "ajuda": "Código da Classificação Internacional de Doenças correspondente ao diagnóstico, citado no relatório.",
-      "obrigatorio": true, "sensivel": true },
+    { "id": "cid", "tipo": "cid", "rotulo": "CID",
+      "ajuda": "Código da Classificação Internacional de Doenças correspondente ao diagnóstico, citado no relatório. Formato: uma letra e dois dígitos, com subcategoria opcional (ex.: F41.1).",
+      "obrigatorio": true, "sensivel": true, "grupo": "Partes e objeto" },
 
     { "id": "objeto", "tipo": "texto", "rotulo": "Objeto da prestação de saúde",
       "ajuda": "Descreva como substantivo simples (ex.: \"exame de ressonância magnética\"), sem artigo inicial nem \"a realização de\" — o texto do modelo já traz isso antes do campo em todos os lugares onde é usado.",
-      "obrigatorio": true, "sensivel": true },
+      "obrigatorio": true, "sensivel": true, "grupo": "Partes e objeto" },
 
     { "id": "numero_solicitacao", "tipo": "texto", "rotulo": "Número da solicitação no SISREG",
       "ajuda": "Identificador da solicitação na regulação (SISREG III), citado no relatório e no comando de providenciar.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Solicitação e regulação" },
 
     { "id": "data_insercao", "tipo": "data", "rotulo": "Data de inserção no SISREG",
       "ajuda": "Data em que a solicitação foi inserida no SISREG III; ponto de partida da contagem da mora administrativa.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Solicitação e regulação" },
 
     { "id": "cor_risco", "tipo": "selecao", "rotulo": "Classificação de risco",
-      "ajuda": "Cor atribuída pela regulação conforme a gravidade clínica; define qual dos quatro prazos do dispositivo se aplica.",
+      "ajuda": "Cor atribuída pela regulação conforme a gravidade clínica; define qual dos quatro prazos do dispositivo se aplica e a prioridade numérica correspondente.",
       "obrigatorio": true, "sensivel": false,
+      "grupo": "Solicitação e regulação",
       "opcoes": [
         { "valor": "vermelho", "rotulo": "Vermelho — prioridade 0" },
         { "valor": "amarelo",  "rotulo": "Amarelo — prioridade 1" },
@@ -69,89 +70,107 @@
         { "valor": "azul",     "rotulo": "Azul — prioridade 3" }
       ] },
 
-    { "id": "prioridade", "tipo": "numero", "rotulo": "Prioridade numérica", "minimo": 0, "maximo": 3,
-      "ajuda": "Número correspondente à classificação de risco: 0 = vermelho, 1 = amarelo, 2 = verde, 3 = azul. Deve bater com o campo de cor.",
-      "obrigatorio": true, "sensivel": false },
+    { "id": "prioridade", "tipo": "numero", "rotulo": "Prioridade numérica",
+      "ajuda": "Calculado a partir da classificação de risco: 0 = vermelho, 1 = amarelo, 2 = verde, 3 = azul. Não aparece no formulário.",
+      "obrigatorio": true, "sensivel": false,
+      "derivado": { "tipo": "tabela", "origem": ["cor_risco"],
+        "tabela": { "vermelho": 0, "amarelo": 1, "verde": 2, "azul": 3 } } },
 
     { "id": "id_extrato", "tipo": "texto", "rotulo": "Id. do extrato do SISREG",
       "ajuda": "Identificador do documento no PJe que comprova os dados da solicitação (data, cor de risco), citado no relatório.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false,
+      "grupo": "Solicitação e regulação" },
 
     { "id": "temTutela", "tipo": "booleano", "rotulo": "Houve concessão de tutela de urgência?",
       "ajuda": "Define se o relatório, a fundamentação (per relationem) e o dispositivo mencionam a tutela já concedida neste feito.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Tutela de urgência" },
 
     { "id": "id_tutela", "tipo": "texto", "rotulo": "Id. da decisão que concedeu a tutela",
       "ajuda": "Identificador do documento no PJe referente à decisão que concedeu a tutela, citado como referência processual.",
-      "obrigatorio": false, "sensivel": false,
+      "obrigatorio": false, "sensivel": false, "grupo": "Tutela de urgência",
       "mostrarQuando": { "campo": "temTutela", "igual": true } },
 
     { "id": "data_tutela", "tipo": "data", "rotulo": "Data da concessão da tutela",
       "ajuda": "Data em que a tutela de urgência foi deferida; aparece por extenso no relatório e na fundamentação per relationem.",
-      "obrigatorio": false, "sensivel": false,
+      "obrigatorio": false, "sensivel": false, "grupo": "Tutela de urgência",
       "mostrarQuando": { "campo": "temTutela", "igual": true } },
 
     { "id": "id_contestacao", "tipo": "texto", "rotulo": "Id. da contestação",
       "ajuda": "Identificador do documento no PJe referente à contestação apresentada pelo Distrito Federal, citado no relatório.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Instrução processual" },
 
     { "id": "id_replica", "tipo": "texto", "rotulo": "Id. da réplica",
       "ajuda": "Identificador do documento no PJe referente à réplica apresentada pela parte autora, citado no relatório.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Instrução processual" },
 
     { "id": "posicao_mp", "tipo": "texto", "rotulo": "Posição do Ministério Público",
       "ajuda": "Frase curta descrevendo pelo que o MP se manifestou (ex.: \"procedência do pedido\"), inserida diretamente no relatório.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Instrução processual" },
 
     { "id": "id_mp", "tipo": "texto", "rotulo": "Id. do parecer do Ministério Público",
       "ajuda": "Identificador do documento no PJe referente à manifestação do Ministério Público, citado no relatório.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Instrução processual" },
 
-    { "id": "codigo_sigtap", "tipo": "texto", "rotulo": "Código SIGTAP",
-      "ajuda": "Código do procedimento na tabela SIGTAP do SUS, citado na fundamentação para comprovar a incorporação ao sistema.",
-      "obrigatorio": true, "sensivel": false },
+    { "id": "codigo_sigtap", "tipo": "sigtap", "rotulo": "Código SIGTAP",
+      "ajuda": "Código do procedimento na tabela SIGTAP do SUS (10 dígitos: grupo, subgrupo, forma de organização e sequencial), citado na fundamentação.",
+      "obrigatorio": true, "sensivel": false, "grupo": "Instrução processual" },
 
     { "id": "id_prescricao", "tipo": "texto", "rotulo": "Id. da prescrição médica",
       "ajuda": "Identificador do documento no PJe referente à prescrição médica que ampara o pedido, citado na fundamentação.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Instrução processual" },
 
     { "id": "data_ajuizamento", "tipo": "data", "rotulo": "Data do ajuizamento",
-      "ajuda": "Data em que a ação foi proposta; usada com a data de inserção no SISREG para calcular a mora administrativa.",
-      "obrigatorio": true, "sensivel": false },
+      "ajuda": "Data em que a ação foi proposta; usada com a data de inserção no SISREG para calcular a mora administrativa e o dispositivo.",
+      "obrigatorio": true, "sensivel": false, "grupo": "Mora e prazo" },
 
     { "id": "dias_mora", "tipo": "numero", "rotulo": "Dias de mora",
-      "ajuda": "Número de dias corridos entre a inserção no SISREG e o ajuizamento, citado na fundamentação da mora.",
-      "obrigatorio": true, "sensivel": false },
+      "ajuda": "Calculado como a diferença em dias entre a inserção no SISREG e o ajuizamento. Não aparece no formulário.",
+      "obrigatorio": true, "sensivel": false,
+      "derivado": { "tipo": "diasEntre", "origem": ["data_insercao", "data_ajuizamento"] } },
 
     { "id": "tese_defesa", "tipo": "texto", "rotulo": "Tese da defesa",
       "ajuda": "Resumo curto do que o Distrito Federal alegou na contestação, citado na fundamentação para ser afastado.",
-      "obrigatorio": true, "sensivel": false },
+      "obrigatorio": true, "sensivel": false, "grupo": "Mora e prazo" },
 
     { "id": "tipo_teto", "tipo": "selecao", "rotulo": "Teto do Enunciado 93 aplicável",
       "ajuda": "Se o objeto pedido é consulta/exame (teto de 100 dias) ou cirurgia eletiva (teto de 180 dias); define o texto sobre a superação do teto na fundamentação da mora.",
-      "obrigatorio": true, "sensivel": false,
+      "obrigatorio": true, "sensivel": false, "grupo": "Mora e prazo",
       "opcoes": [
         { "valor": "consulta", "rotulo": "Consulta ou exame — teto de 100 dias" },
         { "valor": "cirurgia", "rotulo": "Cirurgia eletiva — teto de 180 dias" }
       ] },
 
     { "id": "graduacao_mora", "tipo": "selecao", "rotulo": "Graduação da mora",
-      "ajuda": "Graduação entre a inserção no SISREG e o ajuizamento: leve = teto do Enunciado 93 recém-superado; moderada = mais de 125 dias (consulta/exame) ou 225 (cirurgia); severa = mais de 150 ou 270; extrema = mais do dobro do teto (mais de 200 ou 360).",
-      "obrigatorio": true, "sensivel": false,
+      "ajuda": "Graduação entre a inserção no SISREG e o ajuizamento: leve = teto do Enunciado 93 recém-superado; moderada = mais de 125 dias (consulta/exame) ou 225 (cirurgia); severa = mais de 150 ou 270; extrema = mais do dobro do teto (mais de 200 ou 360); limítrofe = só para vermelho ou azul, ajuizado bem perto da marca do Enunciado 93 — no azul dá o teto absoluto de 90 dias, no vermelho o prazo já é fixo em 30 e a graduação não muda nada.",
+      "obrigatorio": true, "sensivel": false, "grupo": "Mora e prazo",
+      "mostrarQuando": { "campo": "cor_risco", "umDe": ["amarelo", "verde", "azul"] },
       "opcoes": [
         { "valor": "leve", "rotulo": "Leve" },
         { "valor": "moderada", "rotulo": "Moderada" },
         { "valor": "severa", "rotulo": "Severa" },
-        { "valor": "extrema", "rotulo": "Extrema" }
+        { "valor": "extrema", "rotulo": "Extrema" },
+        { "valor": "limitrofe", "rotulo": "Limítrofe (só se aplica ao azul — teto absoluto de 90 dias)" }
       ] },
 
     { "id": "prazo_dias", "tipo": "numero", "rotulo": "Prazo em dias",
-      "ajuda": "Conforme a cor de risco e a graduação da mora. Vermelho: fixo em 30. Amarelo: extrema/severa=45, moderada=50, leve=55. Verde: extrema/severa=60, moderada=65, leve=70. Azul: extrema/severa=75, moderada=80, leve=85 (ou 90 em caso limítrofe, teto absoluto).",
-      "obrigatorio": true, "sensivel": false },
+      "ajuda": "Calculado a partir da cor de risco e da graduação da mora, pela tabela do Enunciado 93 (30/45-55/60-70/75-90). Não aparece no formulário.",
+      "obrigatorio": true, "sensivel": false,
+      "derivado": { "tipo": "tabela", "origem": ["cor_risco", "graduacao_mora"], "tabela": {
+        "vermelho.leve": 30, "vermelho.moderada": 30, "vermelho.severa": 30, "vermelho.extrema": 30, "vermelho.limitrofe": 30,
+        "amarelo.extrema": 45, "amarelo.severa": 45, "amarelo.moderada": 50, "amarelo.leve": 55,
+        "verde.extrema": 60, "verde.severa": 60, "verde.moderada": 65, "verde.leve": 70,
+        "azul.extrema": 75, "azul.severa": 75, "azul.moderada": 80, "azul.leve": 85, "azul.limitrofe": 90
+      } } },
 
     { "id": "prazo_extenso", "tipo": "texto", "rotulo": "Prazo por extenso",
-      "ajuda": "O mesmo prazo de prazo_dias escrito por extenso entre parênteses no dispositivo (ex.: \"quarenta e cinco\").",
-      "obrigatorio": true, "sensivel": false }
+      "ajuda": "O mesmo prazo_dias escrito por extenso, pela mesma tabela do Enunciado 93. Não aparece no formulário.",
+      "obrigatorio": true, "sensivel": false,
+      "derivado": { "tipo": "tabela", "origem": ["cor_risco", "graduacao_mora"], "tabela": {
+        "vermelho.leve": "trinta", "vermelho.moderada": "trinta", "vermelho.severa": "trinta", "vermelho.extrema": "trinta", "vermelho.limitrofe": "trinta",
+        "amarelo.extrema": "quarenta e cinco", "amarelo.severa": "quarenta e cinco", "amarelo.moderada": "cinquenta", "amarelo.leve": "cinquenta e cinco",
+        "verde.extrema": "sessenta", "verde.severa": "sessenta", "verde.moderada": "sessenta e cinco", "verde.leve": "setenta",
+        "azul.extrema": "setenta e cinco", "azul.severa": "setenta e cinco", "azul.moderada": "oitenta", "azul.leve": "oitenta e cinco", "azul.limitrofe": "noventa"
+      } } }
   ],
 
   "corpo": [
