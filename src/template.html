@@ -180,13 +180,6 @@ body {
 .selo-pendente { color: var(--perigo);   }
 .selo-rascunho { color: var(--aviso);    }
 
-/* --- Diagnóstico (arnês) ------------------------------------------------ */
-.diag { font-family: var(--mono); font-size: 12.5px; }
-.diag .ok    { color: var(--sucesso); }
-.diag .falha { color: var(--perigo); font-weight: 700; }
-.diag ol { margin: 8px 0 0; padding-left: 22px; }
-.diag li { margin-bottom: 3px; }
-
 .aviso-caixa {
     border-left: 3px solid var(--aviso);
     background: var(--superficie-2);
@@ -2211,7 +2204,6 @@ const App = {
 
     pintar() {
         const alvo = document.getElementById('principal');
-        const depurar = /[?&]debug=1/.test(location.search);
 
         let h = '';
 
@@ -2251,40 +2243,6 @@ const App = {
              '<div class="folha" id="folha"></div>' +
              '</section>';
 
-        h += '<section class="cartao">' +
-             '<span class="sobrancelha">Fase 1 — conferência do pacote</span>' +
-             '<h2>Minuta de conferência ' + U.selo('CURADO') + '</h2>' +
-             '<p class="legenda">Gera um <code>.docx</code> de texto fixo com a formatação da vara — ' +
-             'Cambria 14, entrelinha 1,4, A4 com as margens da peça real. ' +
-             'Serve para responder à única pergunta que importa antes de qualquer outra coisa: ' +
-             '<strong>o PJe aceita o arquivo?</strong></p>' +
-             '<div class="linha-btn">' +
-                '<button class="btn" id="btnGerar" ' +
-                    'title="Monta o pacote OOXML em memória e baixa o arquivo. Nada é enviado para fora deste computador.">' +
-                    'Baixar minuta de conferência (.docx)</button>' +
-                '<button class="btn secundario" id="btnPrevia" ' +
-                    'title="Mostra na tela o mesmo conteúdo que vai para o arquivo, na proporção da folha A4.">' +
-                    'Ver na tela</button>' +
-                U.dica('O documento de conferência exercita de propósito os casos que costumam quebrar um .docx: ' +
-                       'espaço no início e no fim do texto, caractere de controle colado do PJe, negrito no meio ' +
-                       'do parágrafo, recuo pendente da alínea e um parágrafo de instrução que não pode vazar para a peça.') +
-             '</div>' +
-             '<div id="saidaGerar"></div>' +
-             '</section>';
-
-        h += '<section class="cartao">' +
-             '<span class="sobrancelha">Verificação</span>' +
-             '<h2>Arnês do pacote</h2>' +
-             '<p class="legenda">' + Testes.casos.length + ' asserções sobre a estrutura do OOXML. ' +
-             'As mesmas rodam em <code>npm run conferir</code>, antes de o arquivo chegar a alguém.</p>' +
-             '<div class="linha-btn">' +
-                '<button class="btn secundario" id="btnTestes" ' +
-                    'title="Executa as asserções neste navegador e lista o resultado de cada uma.">' +
-                    'Rodar as asserções</button>' +
-             '</div>' +
-             '<div id="saidaTestes" class="diag"></div>' +
-             '</section>';
-
         alvo.innerHTML = h;
 
         document.getElementById('vitrine').addEventListener('click', App.aoClicarVitrine);
@@ -2293,12 +2251,6 @@ const App = {
         document.getElementById('btnGerarForm').addEventListener('click', App.gerarForm);
         document.getElementById('btnPreviaForm').addEventListener('click', App.previaForm);
         document.getElementById('btnVoltarVitrine').addEventListener('click', App.voltarVitrine);
-
-        document.getElementById('btnGerar').addEventListener('click', App.gerar);
-        document.getElementById('btnPrevia').addEventListener('click', App.previaExemplo);
-        document.getElementById('btnTestes').addEventListener('click', App.testar);
-
-        if (depurar) App.testar();
     },
 
     /* --- Vitrine → Form --------------------------------------------------- */
@@ -2382,16 +2334,12 @@ const App = {
         return orgaos[(modelo.metadados || {}).orgao] || orgaos[CONFIG.orgaoPadrao];
     },
 
-    /* --- Prévia (compartilhada entre o Form e o card de conferência) ------ */
+    /* --- Prévia -------------------------------------------------------------- */
 
     mostrarPrevia(doc) {
         document.getElementById('folha').innerHTML = Previa.renderizar(doc);
         document.getElementById('cartaoPrevia').hidden = false;
         document.getElementById('cartaoPrevia').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    },
-
-    previaExemplo() {
-        App.mostrarPrevia(Testes.docExemplo());
     },
 
     previaForm() {
@@ -2453,47 +2401,6 @@ const App = {
         } finally {
             btn.disabled = false;
         }
-    },
-
-    async gerar() {
-        const btn = document.getElementById('btnGerar');
-        const saida = document.getElementById('saidaGerar');
-        btn.disabled = true;
-        U.escXml.removidos = 0;
-
-        try {
-            const b = await Docx.baixar(Testes.docExemplo(), Testes.metaExemplo());
-            const kb = (b.size / 1024).toFixed(1);
-            let m = '<div class="aviso-caixa">Arquivo gerado — <strong>' + kb + ' KB</strong>. ' +
-                    'Abra no Word ou no LibreOffice e, em seguida, tente anexá-lo a um processo no PJe. ' +
-                    'É esse anexo que valida a Fase 1.';
-            if (U.escXml.removidos > 0) {
-                m += '<br><br>Foram retirados <strong>' + U.escXml.removidos + '</strong> caracteres invisíveis ' +
-                     'que o formato do Word não aceita. O texto visível não mudou.';
-            }
-            saida.innerHTML = m + '</div>';
-        } catch (e) {
-            /* Nunca expor a mensagem técnica: ela não ajuda o assistente e assusta. */
-            saida.innerHTML = '<div class="aviso-caixa">Não foi possível montar o arquivo neste navegador. ' +
-                              'Verifique se o sistema foi aberto a partir do arquivo HTML completo entregue pelo gabinete.</div>';
-        } finally {
-            btn.disabled = false;
-        }
-    },
-
-    async testar() {
-        const saida = document.getElementById('saidaTestes');
-        saida.innerHTML = '<p>Executando…</p>';
-        const res = await Testes.rodar();
-        const falhas = res.filter(r => !r.ok);
-        let h = '<p><strong>' + (res.length - falhas.length) + '/' + res.length + '</strong> ' +
-                (falhas.length ? '<span class="falha">— ' + falhas.length + ' falha(s)</span>'
-                               : '<span class="ok">— tudo verde</span>') + '</p><ol>';
-        res.forEach(r => {
-            h += '<li class="' + (r.ok ? 'ok' : 'falha') + '">' + (r.ok ? '✓ ' : '✗ ') + U.esc(r.nome) +
-                 (r.ok ? '' : ' — ' + U.esc(r.motivo)) + '</li>';
-        });
-        saida.innerHTML = h + '</ol>';
     }
 };
 </script>

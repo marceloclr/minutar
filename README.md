@@ -43,7 +43,8 @@ O produto é o `index.html`. É o que se entrega aos assistentes: um arquivo, do
 cliques, sem instalação. `npm run build` também grava uma cópia com carimbo de
 data/hora (fora do git — é só histórico local, não faz parte do que se entrega).
 
-Abrindo com `?debug=1`, o arnês de testes roda sozinho na abertura.
+A interface não tem botão de teste — testar é `npm run tudo` (ou `conferir`).
+O assistente só vê a vitrine de modelos e o formulário.
 
 ---
 

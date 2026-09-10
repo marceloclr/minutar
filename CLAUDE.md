@@ -64,7 +64,12 @@ src/template.html ─┘                      ▲
   resíduo `#{}`, filtro incompatível com o tipo do campo.
 - `tools/conferir-docx.mjs` — carrega o motor do `index.html` já construído
   num `vm` Node, gera um `.docx` de verdade, reabre e audita. Roda o mesmo
-  arnês embutido (`Testes`) que roda no navegador com `?debug=1`.
+  arnês embutido (`Testes`) que existe no motor. O arnês **não tem mais
+  botão na interface** — os cartões "conferência do pacote" e "Verificação"
+  (Fase 1/2) foram removidos em 2026-09-10: o assistente real testa gerando
+  e baixando pelo Form de verdade, e a suíte roda só por `npm run tudo`/
+  `conferir-docx.mjs`. `Testes` continua em `src/template.html`, só não é
+  mais alcançável clicando em nada.
 
 Comandos: `npm run validar | build | conferir | tudo | servir`.
 
@@ -169,6 +174,11 @@ convertidas e alcançáveis pela Vitrine/Form na interface — não só por
 `Testes`. Decisões e achados que valem lembrar (detalhe completo no
 histórico do git, commit a commit, se precisar):
 
+- Interface enxuta: os cartões de teste ("Fase 1 — conferência do pacote" e
+  "Verificação — Arnês do pacote") foram removidos — redundantes com o Form
+  de verdade (que já baixa/mostra prévia de uma peça real) e com `npm run
+  tudo`. `App.gerar`/`previaExemplo`/`testar` saíram junto; `Testes`/
+  `docExemplo` continuam existindo, só não têm mais botão.
 - Alínea com recuo pendente (hanging) vem do `.docx` real da vara — mantido
   mesmo onde o HTML das rotas simplificava para recuo comum.
 - Rota A: comandos "c"/"d" dos comandos cartorários continuam sobrepostos,
