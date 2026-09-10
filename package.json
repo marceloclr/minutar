@@ -1,0 +1,14 @@
+{
+  "name": "minutar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Gerador de minutas do 3º Juizado Especial da Fazenda Pública e Saúde Pública do DF — formulário por tipo de peça, saída em .docx para o PJe.",
+  "scripts": {
+    "validar": "node tools/validar-modelos.mjs",
+    "build": "node tools/validar-modelos.mjs && node tools/build.mjs",
+    "conferir": "node tools/conferir-docx.mjs",
+    "tudo": "npm run build && npm run conferir",
+    "servir": "python3 -m http.server 8378"
+  }
+}

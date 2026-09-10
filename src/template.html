@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-tema="claro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MINUTAR — Gerador de minutas do 3º JEFPSP/DF</title>
+
+<!-- ==========================================================================
+     [0] TEMA — aplicado antes do primeiro paint.
+     Ler o tema depois do CSS produz um flash branco na abertura; num sistema
+     que roda o dia inteiro numa secretaria, esse flash é ruído gratuito.
+     ========================================================================== -->
+<script>
+(function () {
+    try {
+        var t = localStorage.getItem('minutar_tema');
+        document.documentElement.setAttribute('data-tema', t === 'escuro' ? 'escuro' : 'claro');
+    } catch (e) {
+        /* localStorage bloqueado por política de grupo em máquina institucional.
+           O tema padrão do atributo no <html> já cobre o caso. */
+    }
+})();
+</script>
+
+<style>
+/* ==========================================================================
+   TOKENS — uma cor por função, nunca por decoração.
+   ========================================================================== */
+:root {
+    --fundo:        #f4f5f7;
+    --superficie:   #ffffff;
+    --superficie-2: #eceef1;
+    --borda:        #d3d7de;
+    --borda-forte:  #b3b9c4;
+    --tinta:        #1b2027;
+    --tinta-fraca:  #5b6472;
+
+    --primaria:     #1f4e79;   /* institucional — ações principais            */
+    --primaria-ct:  #ffffff;
+    --sucesso:      #1d6b4f;   /* pacote válido, conferência aprovada         */
+    --aviso:        #8a5a00;   /* segue, mas exige leitura                    */
+    --perigo:       #a32f2a;   /* bloqueia                                    */
+    --neutro:       #4a5260;   /* informação sem carga                        */
+
+    --raio:   8px;
+    --sombra: 0 1px 2px rgba(20, 25, 35, .06), 0 4px 14px rgba(20, 25, 35, .06);
+    /* Espelha dados/formatacao.json. A prévia precisa parecer com o que sai no
+       .docx; se divergirem, o assistente confere uma coisa e assina outra. */
+    --serif:  Cambria, "Palatino Linotype", "Book Antiqua", "Times New Roman", serif;
+    --recuo-corpo: 1.25cm;
+    --sans:   system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono:   ui-monospace, "Cascadia Code", "Consolas", monospace;
+}
+
+html[data-tema="escuro"] {
+    --fundo:        #14181e;
+    --superficie:   #1b2028;
+    --superficie-2: #232a34;
+    --borda:        #2f3742;
+    --borda-forte:  #46505e;
+    --tinta:        #e6e9ee;
+    --tinta-fraca:  #9aa4b2;
+
+    --primaria:     #7aa7d0;
+    --primaria-ct:  #101419;
+    --sucesso:      #6fbb99;
+    --aviso:        #d9a441;
+    --perigo:       #e08a83;
+    --neutro:       #9aa4b2;
+
+    --sombra: 0 1px 2px rgba(0, 0, 0, .4), 0 4px 14px rgba(0, 0, 0, .35);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--fundo);
+    color: var(--tinta);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+}
+
+/* --- Cabeçalho ---------------------------------------------------------- */
+.topo {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 24px;
+    background: var(--superficie);
+    border-bottom: 1px solid var(--borda);
+    position: sticky; top: 0; z-index: 10;
+}
+.topo h1 { margin: 0; font-size: 17px; letter-spacing: .5px; font-weight: 700; }
+.topo .sub { color: var(--tinta-fraca); font-size: 12.5px; }
+.topo .espaco { flex: 1; }
+
+.envoltorio { max-width: 980px; margin: 28px auto 80px; padding: 0 24px; }
+
+/* --- Cartões ------------------------------------------------------------ */
+.cartao {
+    background: var(--superficie);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    box-shadow: var(--sombra);
+    padding: 22px 24px;
+    margin-bottom: 20px;
+}
+.cartao > h2 {
+    margin: 0 0 4px; font-size: 15px; font-weight: 700;
+    display: flex; align-items: center; gap: 8px;
+}
+.cartao > .legenda { margin: 0 0 18px; color: var(--tinta-fraca); font-size: 13.5px; }
+.sobrancelha {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--tinta-fraca);
+    display: block; margin-bottom: 6px;
+}
+
+/* --- Botões ------------------------------------------------------------- */
+.btn {
+    font: inherit; font-weight: 600;
+    padding: 10px 18px;
+    border-radius: var(--raio);
+    border: 1px solid transparent;
+    cursor: pointer;
+    background: var(--primaria); color: var(--primaria-ct);
+    transition: filter .15s, transform .08s;
+}
+.btn:hover  { filter: brightness(1.08); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .45; cursor: not-allowed; filter: none; transform: none; }
+.btn.secundario {
+    background: var(--superficie-2); color: var(--tinta);
+    border-color: var(--borda-forte);
+}
+.btn:focus-visible { outline: 2px solid var(--primaria); outline-offset: 2px; }
+.linha-btn { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* --- Tooltip: obrigatório em todo controle ------------------------------ */
+.dica {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--superficie-2); color: var(--tinta-fraca);
+    border: 1px solid var(--borda-forte);
+    font-size: 11px; font-weight: 700; cursor: help;
+    position: relative; vertical-align: middle;
+}
+.dica > .dica-corpo {
+    display: none; position: absolute; bottom: calc(100% + 8px); left: 50%;
+    transform: translateX(-50%);
+    width: max-content; max-width: 330px;
+    background: var(--tinta); color: var(--fundo);
+    padding: 9px 12px; border-radius: 6px;
+    font-size: 12.5px; font-weight: 400; line-height: 1.45;
+    text-align: left; z-index: 50;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .28);
+}
+.dica:hover > .dica-corpo, .dica:focus > .dica-corpo { display: block; }
+
+/* --- Selos de proveniência --------------------------------------------- */
+.selo {
+    display: inline-block; padding: 1px 8px; border-radius: 999px;
+    font-size: 11px; font-weight: 700; letter-spacing: .4px;
+    border: 1px solid currentColor; vertical-align: middle;
+}
+.selo-curado   { color: var(--primaria); }
+.selo-digitado { color: var(--sucesso);  }
+.selo-derivado { color: var(--neutro);   }
+.selo-pendente { color: var(--perigo);   }
+.selo-rascunho { color: var(--aviso);    }
+
+/* --- Diagnóstico (arnês) ------------------------------------------------ */
+.diag { font-family: var(--mono); font-size: 12.5px; }
+.diag .ok    { color: var(--sucesso); }
+.diag .falha { color: var(--perigo); font-weight: 700; }
+.diag ol { margin: 8px 0 0; padding-left: 22px; }
+.diag li { margin-bottom: 3px; }
+
+.aviso-caixa {
+    border-left: 3px solid var(--aviso);
+    background: var(--superficie-2);
+    padding: 12px 16px; border-radius: 0 var(--raio) var(--raio) 0;
+    font-size: 13.5px; margin-top: 16px;
+}
+
+/* --- Prévia: folha A4 na tela ------------------------------------------ */
+.folha {
+    background: #fff; color: #000;
+    font-family: var(--serif); font-size: 14pt; line-height: 1.5;
+    /* A4 menos as margens da vara, nas proporções reais */
+    width: 100%; max-width: 720px; margin: 0 auto;
+    padding: 2.5cm 2cm 2.5cm 3cm;
+    border: 1px solid var(--borda);
+    box-shadow: var(--sombra);
+}
+.folha p { margin: 0 0 10pt; text-align: justify; }
+.folha p.est-corpo           { text-align: justify; margin-bottom: 10pt; text-indent: var(--recuo-corpo); }
+.folha p.est-tituloCentro    { text-align: center; font-weight: 700; margin-bottom: 0; }
+.folha p.est-subtituloCentro { text-align: center; margin-bottom: 10pt; }
+.folha p.est-autuacao        { text-align: left; margin-bottom: 0; }
+.folha p.est-secao           { text-align: center; font-weight: 700; margin: 12pt 0 10pt; }
+.folha p.est-subsecao        { font-weight: 700; margin: 12pt 0 6pt; }
+.folha p.est-alinea          { margin-left: 1cm; text-indent: -1cm; }
+.folha p.est-fecho           { margin: 12pt 0; }
+.folha p.est-assinatura      { text-align: center; margin: 12pt 0 0; }
+.folha p.est-vazio           { margin: 0; min-height: 12pt; }
+</style>
+</head>
+
+<body>
+
+<header class="topo">
+    <div>
+        <h1>MINUTAR</h1>
+        <div class="sub">3º Juizado Especial da Fazenda Pública e Saúde Pública do DF</div>
+    </div>
+    <div class="espaco"></div>
+    <button class="btn secundario" id="btnTema"
+            title="Alterna entre o tema claro e o escuro. A escolha fica gravada neste computador e vale para as próximas aberturas.">
+        Tema
+    </button>
+</header>
+
+<main class="envoltorio" id="principal"></main>
+
+<script>
+"use strict";
+
+/* ==========================================================================
+   [1] CONFIG — versões e limites. Um lugar só.
+   ========================================================================== */
+const CONFIG = {
+    nome: 'MINUTAR',
+    versao: '0.1.0',
+    orgaoPadrao: '3jefp_df',
+
+    /* Versões de esquema. Sobem quando o formato muda de forma que um
+       arquivo antigo não pode mais ser lido adivinhando o significado. */
+    esquemaModelo: 1,
+    esquemaPersistencia: 1,
+    formatoTransferencia: 'minutar/minuta',
+    formatoTransferenciaVersao: 1,
+
+    /* Data fixa nas entradas do ZIP. Sem isso o JSZip carimba o relógio e
+       dois downloads do mesmo documento produzem bytes diferentes — o que
+       impede conferir que a geração é determinística. */
+    dataZipFixa: new Date(Date.UTC(2020, 0, 1, 0, 0, 0))
+};
+
+/* ==========================================================================
+   [2] PROV — taxonomia de proveniência.
+   Numa peça judicial, saber de onde veio cada palavra não é luxo. A legenda
+   da interface é gerada deste objeto, então nunca destoa do que os selos dizem.
+   ========================================================================== */
+const PROV = {
+    CURADO:   { classe: 'selo-curado',   rotulo: 'Curado',
+                ajuda: 'Texto fixo do modelo oficial, redigido e conferido pelo gabinete. Não muda conforme o preenchimento.' },
+    DIGITADO: { classe: 'selo-digitado', rotulo: 'Digitado',
+                ajuda: 'Valor informado por você neste formulário. É o que personaliza a minuta para este processo.' },
+    DERIVADO: { classe: 'selo-derivado', rotulo: 'Derivado',
+                ajuda: 'Calculado pelo sistema a partir de outro valor — data por extenso, nome sintético das partes, letra da alínea.' },
+    PENDENTE: { classe: 'selo-pendente', rotulo: 'Pendente',
+                ajuda: 'Espaço do modelo que ficou sem valor. Enquanto houver pendência, o arquivo não é gerado: peça com lacuna não vai para os autos.' },
+    RASCUNHO: { classe: 'selo-rascunho', rotulo: 'Rascunho',
+                ajuda: 'Texto vindo de modelo não-oficial, criado localmente. Não passou pela curadoria do gabinete — confira antes de usar.' }
+};
+
+/* ==========================================================================
+   [3] U — utilitários.
+   ========================================================================== */
+const U = {
+
+    /* --- Texto ---------------------------------------------------------- */
+
+    /* Escape para HTML. Todo valor digitado passa por aqui antes de virar tela. */
+    esc(s) {
+        return String(s == null ? '' : s)
+            .split('&').join('&amp;')
+            .split('<').join('&lt;')
+            .split('>').join('&gt;')
+            .split('"').join('&quot;')
+            .split("'").join('&#39;');
+    },
+
+    /* O que o padrão XML 1.0 proíbe, tirado e contado. Previa chama isto
+       também — sem isso, a tela mostraria um caractere que o .docx descarta,
+       e prévia e arquivo divergiriam no que mais importa: o texto. */
+    semControle(s) {
+        const bruto = String(s == null ? '' : s);
+        let limpo = '', removidos = 0;
+
+        for (let i = 0; i < bruto.length; i++) {
+            const c = bruto.charCodeAt(i);
+
+            /* Par substituto bem formado (emoji etc.): copia os dois de uma vez. */
+            if (c >= 0xD800 && c <= 0xDBFF) {
+                const p = bruto.charCodeAt(i + 1);
+                if (p >= 0xDC00 && p <= 0xDFFF) { limpo += bruto[i] + bruto[i + 1]; i++; continue; }
+                removidos++; continue;             /* alto solitário  */
+            }
+            if (c >= 0xDC00 && c <= 0xDFFF) { removidos++; continue; }   /* baixo solitário */
+
+            /* Permitidos em XML 1.0: tab, LF, CR e tudo a partir de 0x20. */
+            const permitido = c === 0x09 || c === 0x0A || c === 0x0D || (c >= 0x20 && c !== 0xFFFE && c !== 0xFFFF);
+            if (!permitido) { removidos++; continue; }
+
+            limpo += bruto[i];
+        }
+        return { texto: limpo, removidos };
+    },
+
+    /* Escape para XML do OOXML. O caso real: um U+000B (VT) colado do editor
+       do PJe invalida o pacote inteiro, e o Word responde apenas "conteúdo
+       ilegível" — mensagem que não ajuda ninguém a descobrir a causa.
+       CONTAMOS o que foi retirado: a contagem sobe até a interface. */
+    escXml(s) {
+        const r = U.semControle(s);
+        U.escXml.removidos += r.removidos;
+
+        return r.texto
+            .split('&').join('&amp;')
+            .split('<').join('&lt;')
+            .split('>').join('&gt;')
+            .split('"').join('&quot;')
+            .split("'").join('&apos;');
+    },
+
+    /* --- Datas ---------------------------------------------------------- */
+
+    MESES: ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+            'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'],
+
+    /* "10 de setembro de 2026" — como a peça assina. */
+    dataExtenso(d) {
+        const dt = (d instanceof Date) ? d : U.dataDeIso(d);
+        if (!dt) return null;
+        return dt.getDate() + ' de ' + U.MESES[dt.getMonth()] + ' de ' + dt.getFullYear();
+    },
+
+    dataDeIso(s) {
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || ''));
+        if (!m) return null;
+        const a = +m[1], me = +m[2], di = +m[3];
+        const dt = new Date(a, me - 1, di);
+        /* 31/02 vira 03/03 silenciosamente no construtor. Conferimos a volta. */
+        if (dt.getFullYear() !== a || dt.getMonth() !== me - 1 || dt.getDate() !== di) return null;
+        return dt;
+    },
+
+    isoDeData(d) {
+        const p = n => String(n).padStart(2, '0');
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+    },
+
+    /* Carimbo W3CDTF exigido pelo docProps/core.xml. */
+    carimboUtc(d) {
+        const p = n => String(n).padStart(2, '0');
+        return d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate()) +
+               'T' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()) + ':' + p(d.getUTCSeconds()) + 'Z';
+    },
+
+    /* --- Nomes de arquivo ----------------------------------------------- */
+
+    /* Nome sempre começa por letra: um '-' inicial faz ferramentas de linha de
+       comando tratarem o arquivo como opção. E '/' ou ':' quebram o download
+       no Windows. */
+    slug(s) {
+        const semAcento = String(s == null ? '' : s)
+            .normalize('NFD').replace(/[̀-ͯ]/g, '');
+        const limpo = semAcento.replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+        return /^[A-Za-z]/.test(limpo) ? limpo : ('M_' + limpo);
+    },
+
+    /* --- Impressão digital ---------------------------------------------- */
+
+    /* FNV-1a: barato, estável e suficiente para detectar que um conteúdo mudou
+       entre uma exportação e a base corrente. Não é hash criptográfico e não
+       está sendo usado como tal. */
+    digital(o) {
+        const s = JSON.stringify(o === undefined ? null : o);
+        let h = 0x811c9dc5;
+        for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h * 0x01000193) >>> 0; }
+        return h.toString(16).padStart(8, '0');
+    },
+
+    /* --- DOM ------------------------------------------------------------ */
+
+    dica(texto) {
+        return '<span class="dica" tabindex="0" role="note">i<span class="dica-corpo">' +
+               U.esc(texto) + '</span></span>';
+    },
+
+    selo(tipo) {
+        const p = PROV[tipo] || PROV.PENDENTE;
+        return '<span class="selo ' + p.classe + '" title="' + U.esc(p.ajuda) + '">' +
+               U.esc(p.rotulo) + '</span>';
+    },
+
+    baixar(blob, nome) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = nome;
+        document.body.appendChild(a); a.click(); a.remove();
+        /* Revogar de imediato aborta o download em alguns navegadores. */
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+    }
+};
+U.escXml.removidos = 0;
+
+/* ==========================================================================
+   [4] MODELOS — base oficial, injetada pelo build e congelada.
+   Um bug de interface não pode corromper a curadoria dentro da sessão: a
+   única forma de editar um modelo oficial é duplicá-lo como rascunho.
+   ========================================================================== */
+const MODELOS = /*@MODELOS@*/ [] /*@FIM@*/;
+
+/* ==========================================================================
+   [5] DADOS — formatação, órgãos, catálogo e fundamentos. Injetados pelo build.
+   ========================================================================== */
+const DADOS = /*@DADOS@*/ {} /*@FIM@*/;
+
+(function congelar(o) {
+    if (o && typeof o === 'object' && !Object.isFrozen(o)) {
+        Object.freeze(o);
+        Object.keys(o).forEach(k => congelar(o[k]));
+    }
+    return o;
+})(MODELOS);
+(function congelar(o) {
+    if (o && typeof o === 'object' && !Object.isFrozen(o)) {
+        Object.freeze(o);
+        Object.keys(o).forEach(k => congelar(o[k]));
+    }
+    return o;
+})(DADOS);
+
+/* ==========================================================================
+   [8] COND — avaliador de condições sobre os valores do formulário.
+   Os mesmos operadores que tools/validar-modelos.mjs já valida na curadoria;
+   aqui só se decide o valor-verdade, a checagem de forma já aconteceu antes
+   do build. Sem "quando", o nó é sempre incluído.
+   ========================================================================== */
+const Cond = {
+
+    avaliar(cond, valores) {
+        if (!cond) return true;
+        if (cond.todos) return cond.todos.every(c => Cond.avaliar(c, valores));
+        if (cond.algum) return cond.algum.some(c => Cond.avaliar(c, valores));
+        if (cond.nao)   return !Cond.avaliar(cond.nao, valores);
+
+        const v = valores ? valores[cond.campo] : undefined;
+
+        if ('preenchido' in cond) {
+            const tem = v !== undefined && v !== null && v !== '';
+            return cond.preenchido ? tem : !tem;
+        }
+        if ('igual' in cond)     return Cond.iguais(v, cond.igual);
+        if ('diferente' in cond) return !Cond.iguais(v, cond.diferente);
+        if ('umDe' in cond)      return (cond.umDe || []).some(x => Cond.iguais(v, x));
+        if ('contem' in cond)    return Array.isArray(v) && v.indexOf(cond.contem) >= 0;
+        if ('maiorQue' in cond)  return Cond.compara(v, cond.maiorQue) > 0;
+        if ('menorQue' in cond)  return Cond.compara(v, cond.menorQue) < 0;
+        if ('entre' in cond) {
+            const [a, b] = cond.entre;
+            return Cond.compara(v, a) >= 0 && Cond.compara(v, b) <= 0;
+        }
+        return false;
+    },
+
+    /* Booleano compara por Boolean(), não por ===: um campo "booleano" pode
+       chegar como valor JS puro; string/número comparam por igualdade estrita. */
+    iguais(a, b) {
+        if (typeof a === 'boolean' || typeof b === 'boolean') return Boolean(a) === Boolean(b);
+        return a === b;
+    },
+
+    /* Data ISO compara por data real (não por string); número e moeda por valor. */
+    compara(v, alvo) {
+        const dv = U.dataDeIso(v), da = U.dataDeIso(alvo);
+        if (dv && da) return dv.getTime() - da.getTime();
+        return Number(v) - Number(alvo);
+    }
+};
+
+/* ==========================================================================
+   [12] MARCADOR — parser inline de **negrito** e __itálico__, com escape \.
+   Único caminho de código que decide o que é negrito — Previa e Ooxml não
+   reimplementam isto, só desenham o run que sai daqui.
+
+   resolverPlaceholder, se dado, é chamado com o conteúdo de cada {{...}}
+   encontrado e devolve o valor já resolvido. Esse valor vira um run próprio,
+   com o negrito/itálico correntes do texto ao redor, mas NUNCA é escaneado
+   por este parser: um ** dentro de um valor digitado não abre nem fecha
+   marcador. Sem resolverPlaceholder, {{...}} passa como texto literal.
+   ========================================================================== */
+const Marcador = {
+
+    paraRuns(texto, resolverPlaceholder) {
+        const t = String(texto == null ? '' : texto);
+        const runs = [];
+        let atual = '', negrito = false, italico = false, i = 0;
+
+        const fechar = () => {
+            if (atual !== '') runs.push({ texto: atual, negrito, italico });
+            atual = '';
+        };
+
+        while (i < t.length) {
+            if (t[i] === '\\' && '*_\\'.indexOf(t[i + 1]) >= 0) {
+                atual += t[i + 1]; i += 2; continue;
+            }
+            if (t.slice(i, i + 2) === '**') { fechar(); negrito = !negrito; i += 2; continue; }
+            if (t.slice(i, i + 2) === '__') { fechar(); italico = !italico; i += 2; continue; }
+            if (resolverPlaceholder && t[i] === '{' && t[i + 1] === '{') {
+                const fim = t.indexOf('}}', i + 2);
+                if (fim >= 0) {
+                    fechar();
+                    const valor = resolverPlaceholder(t.slice(i + 2, fim).trim());
+                    if (valor !== '') runs.push({ texto: valor, negrito, italico });
+                    i = fim + 2;
+                    continue;
+                }
+            }
+            atual += t[i]; i += 1;
+        }
+        fechar();
+        return runs;
+    }
+};
+
+/* ==========================================================================
+   [11] MONTAGEM — modelo + valores → IR.
+   Uma função só decide o texto da peça; Previa e Ooxml são dois
+   renderizadores burros da mesma estrutura, e nenhum dos dois contém regra
+   de conteúdo. Nesta fase o "modelo" pode ser um objeto JS escrito à mão — o
+   schema JSON de dados/modelos/ é Fase 3.
+   ========================================================================== */
+const Montagem = {
+
+    montarDocumento(modelo, valores, opcoes) {
+        const ctx = {
+            valores: valores || {},
+            orgao: (opcoes && opcoes.orgao) || {},
+            magistrado: (opcoes && opcoes.magistrado) || '',
+            hoje: (opcoes && opcoes.hoje) || new Date(),
+            letras: {}
+        };
+
+        Montagem.atribuirLetras(modelo.corpo || [], ctx);
+
+        const paragrafos = [];
+        (modelo.corpo || []).forEach(no => Montagem.montarNo(no, ctx, paragrafos));
+        return { paragrafos };
+    },
+
+    /* As letras são calculadas ANTES de montar qualquer parágrafo, e só a
+       partir dos filhos que sobrevivem ao próprio "quando" — é assim que um
+       item condicional excluído não deixa buraco na sequência (a, b, _, d).
+       O modelo nunca escreve a letra: só referencia {{@alinea:id}}. */
+    atribuirLetras(corpo, ctx) {
+        corpo.forEach(no => {
+            if (no.tipo !== 'grupoAlineas') return;
+            let letra = 'a'.charCodeAt(0);
+            (no.filhos || []).forEach(f => {
+                if (!Cond.avaliar(f.quando, ctx.valores)) return;
+                ctx.letras[f.id] = String.fromCharCode(letra);
+                letra++;
+            });
+        });
+    },
+
+    montarNo(no, ctx, paragrafos) {
+        if (!Cond.avaliar(no.quando, ctx.valores)) return;
+
+        if (no.tipo === 'grupoAlineas') {
+            (no.filhos || []).forEach(f => {
+                if (ctx.letras[f.id] === undefined) return;
+                Montagem.montarNo(f, ctx, paragrafos);
+            });
+            return;
+        }
+
+        const texto = Montagem.textoDoNo(no, ctx);
+        if (texto == null) return;
+
+        const runs = Marcador.paraRuns(texto, alvo => Montagem.resolverPlaceholder(alvo, ctx));
+        paragrafos.push({ id: no.id, estilo: no.estilo, destino: no.destino || 'peca', runs });
+    },
+
+    /* null distingue "sem texto, omitir o parágrafo" de "" (parágrafo vazio
+       deliberado) — mesma semântica de escolha.padrao validada no build. */
+    textoDoNo(no, ctx) {
+        if (typeof no.texto === 'string') return no.texto;
+        if (no.escolha) {
+            const e = no.escolha;
+            const v = ctx.valores[e.campo];
+            const caso = (e.casos || []).find(c => Cond.iguais(v, c.valor));
+            if (caso) return caso.texto;
+            return e.padrao == null ? null : e.padrao;
+        }
+        return '';
+    },
+
+    resolverPlaceholder(alvo, ctx) {
+        const [nome, filtro] = alvo.split('|').map(s => s && s.trim());
+        if (nome.charAt(0) === '@') return Montagem.resolverSistema(nome.slice(1), ctx);
+        return Montagem.aplicarFiltro(ctx.valores[nome], filtro);
+    },
+
+    resolverSistema(token, ctx) {
+        const [chave, ref] = token.split(':');
+        switch (chave) {
+            case 'hoje':       return U.dataExtenso(ctx.hoje) || '';
+            case 'local':      return ctx.orgao.local || '';
+            case 'magistrado': return ctx.magistrado || '';
+            case 'orgao':      return ctx.orgao.nomeCurto || '';
+            case 'alinea':     return ctx.letras[ref] || '';
+            default:           return '';
+        }
+    },
+
+    /* Só os filtros já exercitados por algum modelo. Os demais listados em
+       validar-modelos.mjs (moeda, percentual, extenso, cnj) entram com o
+       conteúdo real da Fase 3 — implementar sem um uso concreto para
+       conferir contra é inventar comportamento. */
+    aplicarFiltro(v, filtro) {
+        if (v == null || v === '') return '';
+        switch (filtro) {
+            case 'dataExtenso': return U.dataExtenso(v) || '';
+            case 'maiusculas':  return String(v).toUpperCase();
+            case 'sintetico':   return (v && typeof v === 'object' && v.sintetico) || String(v);
+            default:            return String(v);
+        }
+    }
+};
+
+/* ==========================================================================
+   [13] PREVIA — IR → HTML, na folha A4. Segundo renderizador da mesma
+   estrutura que o Ooxml consome; nenhuma regra de conteúdo mora aqui.
+   ========================================================================== */
+const Previa = {
+
+    renderizar(doc) {
+        return (doc.paragrafos || []).filter(p => p.destino !== 'instrucao').map(p => {
+            const corpo = (p.runs || []).map(r => {
+                let t = U.esc(U.semControle(r.texto).texto).split('\n').join('<br>');
+                if (r.negrito) t = '<strong>' + t + '</strong>';
+                if (r.italico) t = '<em>' + t + '</em>';
+                return t;
+            }).join('');
+            return '<p class="est-' + U.esc(p.estilo) + '">' + (corpo || '&nbsp;') + '</p>';
+        }).join('');
+    },
+
+    /* Texto visível, sem marcação — usado só para conferir contra os <w:t>
+       do .docx. Mesma filtragem de "instrucao", mesma concatenação de runs e
+       mesma limpeza de caractere de controle que Ooxml.documento usa, para
+       as duas trilhas partirem do mesmo lugar. */
+    textoPlano(doc) {
+        return (doc.paragrafos || []).filter(p => p.destino !== 'instrucao')
+            .map(p => (p.runs || []).map(r => U.semControle(r.texto == null ? '' : r.texto).texto).join(''))
+            .join('\n');
+    }
+};
+
+/* ==========================================================================
+   [14] OOXML — a IR vira word/document.xml.
+   Formatação DIRETA em cada parágrafo, sem w:pStyle.
+   Essa escolha veio da peça real da vara, que também não usa estilos nomeados,
+   e elimina de saída a pior armadilha do OOXML: um pStyle apontando para um
+   estilo que não existe no styles.xml. O documento abre, sai com a formatação
+   errada, e nada — nem o Word, nem o validador — acusa.
+   ========================================================================== */
+const Ooxml = {
+
+    NS: 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"',
+
+    /* Propriedades de parágrafo a partir do estilo declarado em formatacao.json.
+       Ordem dos filhos de w:pPr importa para o schema: pStyle, ..., spacing,
+       ind, jc. Fora de ordem, o Word recusa o arquivo. */
+    pPr(nomeEstilo) {
+        const e = (DADOS.formatacao.estilos || {})[nomeEstilo] || DADOS.formatacao.estilos.corpo;
+        const el = DADOS.formatacao.entrelinha;
+
+        let x = '<w:pPr>';
+        x += '<w:spacing w:before="' + (e.espacoAntesTwips || 0) + '"' +
+                      ' w:after="'  + (e.espacoDepoisTwips || 0) + '"' +
+                      ' w:line="'   + el.linhaTwips + '" w:lineRule="' + el.regra + '"/>';
+
+        const recEsq = e.recuoEsquerdaTwips || 0;
+        const recPri = e.recuoPrimeiraLinhaTwips || 0;
+        if (recEsq || recPri) {
+            x += '<w:ind w:left="' + recEsq + '"';
+            /* Recuo negativo em OOXML é w:hanging, com o valor em positivo. */
+            x += recPri < 0 ? ' w:hanging="' + Math.abs(recPri) + '"'
+                            : ' w:firstLine="' + recPri + '"';
+            x += '/>';
+        }
+
+        x += '<w:jc w:val="' + (e.alinhamento || 'both') + '"/>';
+        return x + '</w:pPr>';
+    },
+
+    rPr(run, nomeEstilo) {
+        const e = (DADOS.formatacao.estilos || {})[nomeEstilo] || DADOS.formatacao.estilos.corpo;
+        const f = DADOS.formatacao.fonte;
+        const negrito = run.negrito || e.negrito;
+
+        let x = '<w:rPr>';
+        x += '<w:rFonts w:ascii="' + U.escXml(f.familia) + '" w:hAnsi="' + U.escXml(f.familia) +
+             '" w:cs="' + U.escXml(f.familia) + '"/>';
+        if (negrito)     x += '<w:b/><w:bCs/>';
+        if (run.italico) x += '<w:i/><w:iCs/>';
+        if (run.realce)  x += '<w:highlight w:val="yellow"/>';
+        x += '<w:sz w:val="' + f.tamanhoMeioPonto + '"/><w:szCs w:val="' + f.tamanhoMeioPonto + '"/>';
+        x += '<w:lang w:val="pt-BR"/>';
+        return x + '</w:rPr>';
+    },
+
+    /* Um run. A quebra de linha interna vira <w:br/> — sem isso, um textoLongo
+       colado com Enter sai como um parágrafo único e ilegível. */
+    run(r, nomeEstilo) {
+        const partes = String(r.texto == null ? '' : r.texto).split('\n');
+        let x = '<w:r>' + Ooxml.rPr(r, nomeEstilo);
+        partes.forEach((p, i) => {
+            if (i > 0) x += '<w:br/>';
+            /* xml:space="preserve" SEMPRE. Sem ele o Word come o espaço final e
+               a peça sai com "art. 1.022do CPC". */
+            x += '<w:t xml:space="preserve">' + U.escXml(p) + '</w:t>';
+        });
+        return x + '</w:r>';
+    },
+
+    paragrafo(p) {
+        const runs = (p.runs || []).filter(r => r && r.texto !== '' && r.texto != null);
+        let x = '<w:p>' + Ooxml.pPr(p.estilo);
+        /* Parágrafo sem run é legítimo (linha em branco) e precisa sair como
+           <w:p> vazio, não ser suprimido: a peça perderia o respiro. */
+        runs.forEach(r => { x += Ooxml.run(r, p.estilo); });
+        return x + '</w:p>';
+    },
+
+    /* Ordem dos filhos de w:sectPr é fixada pelo schema:
+       pgSz → pgMar → pgNumType → cols → docGrid. Por isso vive numa string
+       única, e não em concatenação condicional livre. */
+    sectPr() {
+        const pg = DADOS.formatacao.pagina;
+        const m  = DADOS.formatacao.margensTwips;
+        return '<w:sectPr>' +
+            '<w:pgSz w:w="' + pg.larguraTwips + '" w:h="' + pg.alturaTwips +
+                  '" w:orient="' + pg.orientacao + '"/>' +
+            '<w:pgMar w:top="' + m.superior + '" w:right="' + m.direita +
+                   '" w:bottom="' + m.inferior + '" w:left="' + m.esquerda +
+                   '" w:header="' + m.cabecalho + '" w:footer="' + m.rodape + '" w:gutter="0"/>' +
+            '<w:cols w:space="708"/>' +
+            '<w:docGrid w:linePitch="360"/>' +
+            '</w:sectPr>';
+    },
+
+    /* A IR inteira. Parágrafos com destino 'instrucao' ficam de fora: são as
+       INSTRUÇÕES DE USO, que orientam o assistente e não integram a peça. */
+    documento(doc) {
+        const uteis = doc.paragrafos.filter(p => p.destino !== 'instrucao');
+        let x = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+        x += '<w:document ' + Ooxml.NS + '><w:body>';
+        uteis.forEach(p => { x += Ooxml.paragrafo(p); });
+        x += Ooxml.sectPr();
+        return x + '</w:body></w:document>';
+    }
+};
+
+/* ==========================================================================
+   [15] PACOTE — as oito partes do .docx.
+   O [Content_Types].xml é gerado A PARTIR DA MESMA LISTA que alimenta o ZIP.
+   Montar as duas à mão é como se produz o "O Word encontrou conteúdo
+   ilegível": um Override sem parte, ou uma parte sem Override.
+   ========================================================================== */
+const Pacote = {
+
+    CT: {
+        doc:      'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml',
+        estilos:  'application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml',
+        config:   'application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml',
+        core:     'application/vnd.openxmlformats-package.core-properties+xml',
+        app:      'application/vnd.openxmlformats-officedocument.extended-properties+xml'
+    },
+
+    cab: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n',
+
+    /* styles.xml só com docDefaults e o estilo Normal.
+       Como a formatação é direta, este arquivo existe para o Word ter um padrão
+       coerente ao qual voltar — não para os parágrafos apontarem para ele. */
+    estilos() {
+        const f  = DADOS.formatacao.fonte;
+        const el = DADOS.formatacao.entrelinha;
+        return Pacote.cab +
+            '<w:styles ' + Ooxml.NS + '>' +
+            '<w:docDefaults>' +
+                '<w:rPrDefault><w:rPr>' +
+                    '<w:rFonts w:ascii="' + U.escXml(f.familia) + '" w:hAnsi="' + U.escXml(f.familia) +
+                          '" w:cs="' + U.escXml(f.familia) + '"/>' +
+                    '<w:sz w:val="' + f.tamanhoMeioPonto + '"/>' +
+                    '<w:szCs w:val="' + f.tamanhoMeioPonto + '"/>' +
+                    '<w:lang w:val="pt-BR" w:eastAsia="pt-BR" w:bidi="ar-SA"/>' +
+                '</w:rPr></w:rPrDefault>' +
+                '<w:pPrDefault><w:pPr>' +
+                    '<w:spacing w:after="0" w:line="' + el.linhaTwips + '" w:lineRule="' + el.regra + '"/>' +
+                    '<w:jc w:val="both"/>' +
+                '</w:pPr></w:pPrDefault>' +
+            '</w:docDefaults>' +
+            '<w:style w:type="paragraph" w:default="1" w:styleId="Normal">' +
+                '<w:name w:val="Normal"/><w:qFormat/>' +
+            '</w:style>' +
+            '</w:styles>';
+    },
+
+    config() {
+        return Pacote.cab +
+            '<w:settings ' + Ooxml.NS + '>' +
+            '<w:zoom w:percent="100"/>' +
+            '<w:defaultTabStop w:val="708"/>' +
+            '<w:characterSpacingControl w:val="doNotCompress"/>' +
+            '<w:decimalSymbol w:val=","/><w:listSeparator w:val=";"/>' +
+            '</w:settings>';
+    },
+
+    /* Propriedades do documento.
+       Regra de privacidade: NADA de dado pessoal entra aqui. O título é o tipo
+       da peça, não o nome de quem litiga; dc:subject leva o número do processo
+       apenas quando o feito não corre em segredo de justiça. */
+    core(meta) {
+        const carimbo = U.carimboUtc(meta.geradoEm);
+        return Pacote.cab +
+            '<cp:coreProperties' +
+            ' xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties"' +
+            ' xmlns:dc="http://purl.org/dc/elements/1.1/"' +
+            ' xmlns:dcterms="http://purl.org/dc/terms/"' +
+            ' xmlns:dcmitype="http://purl.org/dc/dcmitype/"' +
+            ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
+            '<dc:title>' + U.escXml(meta.titulo || '') + '</dc:title>' +
+            '<dc:subject>' + U.escXml(meta.assunto || '') + '</dc:subject>' +
+            '<dc:creator>' + U.escXml(CONFIG.nome) + '</dc:creator>' +
+            '<cp:lastModifiedBy>' + U.escXml(CONFIG.nome) + '</cp:lastModifiedBy>' +
+            '<dcterms:created xsi:type="dcterms:W3CDTF">' + carimbo + '</dcterms:created>' +
+            '<dcterms:modified xsi:type="dcterms:W3CDTF">' + carimbo + '</dcterms:modified>' +
+            '</cp:coreProperties>';
+    },
+
+    app() {
+        return Pacote.cab +
+            '<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"' +
+            ' xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">' +
+            '<Application>' + U.escXml(CONFIG.nome + ' ' + CONFIG.versao) + '</Application>' +
+            '<Company></Company><DocSecurity>0</DocSecurity>' +
+            '</Properties>';
+    },
+
+    relsRaiz() {
+        return Pacote.cab +
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+            '<Relationship Id="rId1" Target="word/document.xml"' +
+            ' Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"/>' +
+            '<Relationship Id="rId2" Target="docProps/core.xml"' +
+            ' Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties"/>' +
+            '<Relationship Id="rId3" Target="docProps/app.xml"' +
+            ' Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties"/>' +
+            '</Relationships>';
+    },
+
+    /* Targets relativos a word/. Um Target absoluto ("/word/styles.xml") faz o
+       Word ignorar os estilos sem reclamar de nada. */
+    relsDoc() {
+        return Pacote.cab +
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+            '<Relationship Id="rId1" Target="styles.xml"' +
+            ' Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles"/>' +
+            '<Relationship Id="rId2" Target="settings.xml"' +
+            ' Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings"/>' +
+            '</Relationships>';
+    },
+
+    contentTypes(entradas) {
+        let x = Pacote.cab +
+            '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+            '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+            '<Default Extension="xml" ContentType="application/xml"/>';
+        entradas.forEach(e => {
+            if (e.contentType) {
+                x += '<Override PartName="/' + e.caminho + '" ContentType="' + e.contentType + '"/>';
+            }
+        });
+        return x + '</Types>';
+    },
+
+    /* A lista única. Toda entrada com contentType ganha Override; as .rels são
+       cobertas pelo Default. Acrescentar uma parte aqui basta — o
+       [Content_Types].xml se ajusta sozinho. */
+    entradas(doc, meta) {
+        return [
+            { caminho: '_rels/.rels',              conteudo: Pacote.relsRaiz()      },
+            { caminho: 'docProps/core.xml',        conteudo: Pacote.core(meta),      contentType: Pacote.CT.core    },
+            { caminho: 'docProps/app.xml',         conteudo: Pacote.app(),           contentType: Pacote.CT.app     },
+            { caminho: 'word/_rels/document.xml.rels', conteudo: Pacote.relsDoc()   },
+            { caminho: 'word/document.xml',        conteudo: Ooxml.documento(doc),   contentType: Pacote.CT.doc     },
+            { caminho: 'word/styles.xml',          conteudo: Pacote.estilos(),       contentType: Pacote.CT.estilos },
+            { caminho: 'word/settings.xml',        conteudo: Pacote.config(),        contentType: Pacote.CT.config  }
+        ];
+    },
+
+    montar(doc, meta) {
+        const entradas = Pacote.entradas(doc, meta);
+        /* O [Content_Types].xml é a primeira entrada do ZIP por convenção, e
+           é derivado da lista — nunca escrito à mão em paralelo. */
+        return [{ caminho: '[Content_Types].xml', conteudo: Pacote.contentTypes(entradas) }]
+               .concat(entradas);
+    }
+};
+
+/* ==========================================================================
+   [16] DOCX — entradas → ZIP → Blob → download.
+   ========================================================================== */
+const Docx = {
+
+    async blob(doc, meta) {
+        if (typeof JSZip === 'undefined') {
+            throw new Error('biblioteca-ausente');
+        }
+        const zip = new JSZip();
+        Pacote.montar(doc, meta).forEach(e => {
+            /* date fixa: geração determinística (ver CONFIG.dataZipFixa).
+               createFolders:false evita entradas de diretório, que alguns
+               leitores estritos recusam. */
+            zip.file(e.caminho, e.conteudo, { date: CONFIG.dataZipFixa, createFolders: false });
+        });
+        return zip.generateAsync({
+            type: 'blob',
+            mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            compression: 'DEFLATE',
+            compressionOptions: { level: 6 },
+            /* streamFiles:true grava data descriptors; o Word abre, mas o
+               Apache POI — que é o que roda no backend do PJe — recusa. */
+            streamFiles: false
+        });
+    },
+
+    nomeArquivo(meta) {
+        const p = [
+            'Minuta',
+            U.slug(meta.tipoPeca || 'peca'),
+            meta.processoParaNome ? U.slug(meta.processoParaNome) : null,
+            U.isoDeData(meta.geradoEm).split('-').join('')
+        ].filter(Boolean);
+        return p.join('_') + '.docx';
+    },
+
+    async baixar(doc, meta) {
+        const b = await Docx.blob(doc, meta);
+        U.baixar(b, Docx.nomeArquivo(meta));
+        return b;
+    }
+};
+
+/* ==========================================================================
+   [24] TESTES — arnês.
+   Roda com ?debug=1. As mesmas asserções rodam em tools/conferir-docx.mjs,
+   fora do navegador, para que o build reprove antes de o arquivo chegar a
+   alguém.
+   ========================================================================== */
+const Testes = {
+
+    casos: [],
+    def(nome, fn) { Testes.casos.push({ nome, fn }); },
+
+    async rodar() {
+        const res = [];
+        for (const c of Testes.casos) {
+            try { await c.fn(); res.push({ nome: c.nome, ok: true }); }
+            catch (e) { res.push({ nome: c.nome, ok: false, motivo: e && e.message ? e.message : String(e) }); }
+        }
+        return res;
+    },
+
+    ok(cond, msg) { if (!cond) throw new Error(msg || 'asserção falhou'); },
+    igual(a, b, msg) {
+        if (a !== b) throw new Error((msg || 'diferente') + ' — esperado ' + JSON.stringify(b) + ', veio ' + JSON.stringify(a));
+    },
+
+    /* Documento de conferência: exercita cada estilo, o negrito, o itálico,
+       o espaço nas bordas do texto e um caractere de controle. */
+    docExemplo() {
+        const o = DADOS.orgaos.orgaos[CONFIG.orgaoPadrao];
+        const p = (estilo, texto, extra) => ({
+            id: 'p' + Math.random().toString(36).slice(2, 8),
+            estilo, destino: 'peca',
+            runs: [Object.assign({ texto }, extra || {})]
+        });
+
+        const paras = [];
+        o.cabecalho.forEach(l => paras.push(p('tituloCentro', l)));
+        paras.push(p('autuacao', 'Processo nº: 0700000-06.2025.8.07.0016'));
+        paras.push(p('autuacao', 'Classe judicial: Cumprimento de Sentença contra a Fazenda Pública'));
+        paras.push(p('vazio', ''));
+        paras.push(p('secao', 'S E N T E N Ç A'));
+        paras.push(p('subsecao', 'I – RELATÓRIO'));
+        paras.push({
+            id: 'misto', estilo: 'corpo', destino: 'peca',
+            runs: [
+                { texto: 'Dispensado o relatório, nos termos do ' },
+                { texto: 'art. 38 da Lei nº 9.099/1995', negrito: true },
+                { texto: ', aplicável por força do art. 27 da Lei nº 12.153/2009.' }
+            ]
+        });
+        /* Espaço nas bordas e caractere de controle: os dois casos que quebram
+           o pacote de formas difíceis de diagnosticar. */
+        paras.push(p('corpo', ' texto com espaço nas bordas e um VT \u000B aqui '));
+        paras.push(p('alinea', 'a) NÃO CONHEÇO dos embargos de declaração, por manifesta inadmissibilidade;'));
+        paras.push(p('alinea', 'b) DECLARO o caráter manifestamente protelatório da oposição.'));
+        paras.push(p('fecho', 'Publique-se. Registre-se. Intimem-se.'));
+        paras.push(p('assinatura', o.local + ', ' + U.dataExtenso(new Date())));
+        paras.push(p('assinatura', '[Nome do magistrado] – ' + o.cargoPadrao));
+        paras.push({
+            id: 'instr', estilo: 'corpo', destino: 'instrucao',
+            runs: [{ texto: 'INSTRUÇÕES DE USO — este parágrafo NÃO pode aparecer no .docx.' }]
+        });
+
+        return { paragrafos: paras };
+    },
+
+    metaExemplo() {
+        return {
+            titulo: 'Minuta de conferência — MINUTAR',
+            assunto: '', tipoPeca: 'sentenca',
+            processoParaNome: '0700000-06.2025.8.07.0016',
+            geradoEm: new Date(Date.UTC(2026, 8, 10, 12, 0, 0))
+        };
+    },
+
+    /* Modelo sintético da Fase 2 — exercita texto com placeholder, escolha,
+       quando e grupoAlineas. Não é curadoria oficial: não vive em
+       dados/modelos/ e não passa por validar-modelos.mjs. A conversão das
+       4 rotas reais (Gerador de Sentencas) é Fase 3, à parte. */
+    modeloExemplo() {
+        return {
+            id: 'exemplo_fase2',
+            corpo: [
+                { id: 'titulo', estilo: 'tituloCentro', texto: '**{{@orgao}}**' },
+                { id: 'autuacao', estilo: 'autuacao', texto: 'Processo nº: {{processo}}' },
+                { id: 'relato', estilo: 'corpo',
+                  texto: 'A parte autora, {{autor|sintetico}}, pede {{objeto}}, com base em {{fundamento}}.' },
+                { id: 'tutela', estilo: 'corpo',
+                  escolha: { campo: 'temTutela',
+                             casos: [{ valor: true, texto: 'Houve concessão de tutela de urgência neste feito.' }],
+                             padrao: 'Não houve concessão de tutela de urgência neste feito.' } },
+                { id: 'constricao', estilo: 'corpo', quando: { campo: 'temConstricao', igual: true },
+                  texto: 'Registra-se a existência de constrição a levantar.' },
+                { id: 'comandos', tipo: 'grupoAlineas', filhos: [
+                    { id: 'intimacao', estilo: 'alinea', texto: '{{@alinea:intimacao}}) intimem-se as partes;' },
+                    { id: 'mp', estilo: 'alinea', texto: '{{@alinea:mp}}) dê-se ciência ao Ministério Público;' },
+                    { id: 'constricao_alinea', estilo: 'alinea', quando: { campo: 'temConstricao', igual: true },
+                      texto: '{{@alinea:constricao_alinea}}) expeça-se o necessário ao levantamento da constrição;' },
+                    { id: 'arquivamento', estilo: 'alinea',
+                      texto: '{{@alinea:arquivamento}}) certificado o trânsito em julgado, arquive-se.' }
+                ] },
+                { id: 'assinatura', estilo: 'assinatura', texto: '{{@local}}, {{@hoje}}.' }
+            ]
+        };
+    },
+
+    valoresExemplo(variante) {
+        const base = {
+            processo: '0700000-06.2025.8.07.0016',
+            autor: { nome: 'Fulano de Tal', sintetico: 'o autor' },
+            objeto: 'a realização de exame',
+            fundamento: 'art. 196 da Constituição Federal',
+            temTutela: false,
+            temConstricao: false
+        };
+        if (variante === 'b') return Object.assign({}, base, { temTutela: true, temConstricao: true });
+        if (variante === 'c') return Object.assign({}, base, {
+            temTutela: true,
+            autor: { nome: 'Ciclana de Tal', sintetico: 'a autora' }
+        });
+        return base;
+    },
+
+    opcoesExemplo() {
+        return {
+            orgao: DADOS.orgaos.orgaos[CONFIG.orgaoPadrao],
+            magistrado: '[Nome do magistrado]',
+            hoje: new Date(Date.UTC(2026, 8, 10, 12, 0, 0))
+        };
+    },
+
+    /* Extrai o texto visível de um word/document.xml já montado, para
+       conferir contra Previa.textoPlano(doc) — as duas trilhas do mesmo IR. */
+    textoDoXml(xml) {
+        const corpo = xml.slice(xml.indexOf('<w:body>') + 8, xml.indexOf('<w:sectPr'));
+        const paragrafos = corpo.split('<w:p>').slice(1).map(b => b.split('</w:p>')[0]);
+        const desxml = s => s
+            .split('<w:br/>').join('\n')
+            .replace(/<[^>]+>/g, '')
+            .split('&amp;').join('&').split('&lt;').join('<').split('&gt;').join('>')
+            .split('&quot;').join('"').split('&apos;').join("'");
+        return paragrafos.map(desxml).join('\n');
+    }
+};
+
+/* --- Asserções do pacote OOXML ------------------------------------------ */
+
+Testes.def('document.xml é XML bem formado', () => {
+    const x = Ooxml.documento(Testes.docExemplo());
+    const d = new DOMParser().parseFromString(x, 'application/xml');
+    Testes.ok(!d.querySelector('parsererror'), 'parser recusou o document.xml');
+});
+
+Testes.def('todas as partes do pacote são XML bem formado', () => {
+    const ent = Pacote.montar(Testes.docExemplo(), Testes.metaExemplo());
+    ent.forEach(e => {
+        const d = new DOMParser().parseFromString(e.conteudo, 'application/xml');
+        Testes.ok(!d.querySelector('parsererror'), e.caminho + ' não é XML válido');
+    });
+});
+
+Testes.def('todo Override tem parte e toda parte tem Override', () => {
+    const ent = Pacote.montar(Testes.docExemplo(), Testes.metaExemplo());
+    const ct  = ent[0].conteudo;
+    const declarados = (ct.match(/PartName="\/([^"]+)"/g) || [])
+                        .map(s => s.replace(/PartName="\//, '').replace(/"$/, ''));
+    const comTipo = ent.filter(e => e.contentType).map(e => e.caminho);
+
+    declarados.forEach(d => Testes.ok(ent.some(e => e.caminho === d), 'Override sem parte: ' + d));
+    comTipo.forEach(c => Testes.ok(declarados.indexOf(c) >= 0, 'parte sem Override: ' + c));
+});
+
+Testes.def('xml:space="preserve" em todo w:t', () => {
+    const x = Ooxml.documento(Testes.docExemplo());
+    const total = (x.match(/<w:t[ >]/g) || []).length;
+    const comEspaco = (x.match(/<w:t xml:space="preserve">/g) || []).length;
+    Testes.igual(comEspaco, total, 'w:t sem xml:space');
+});
+
+Testes.def('espaço nas bordas do texto sobrevive', () => {
+    const x = Ooxml.documento(Testes.docExemplo());
+    Testes.ok(x.indexOf('<w:t xml:space="preserve"> texto com espaço') >= 0,
+              'o espaço inicial foi perdido');
+});
+
+Testes.def('caractere de controle é removido e contado', () => {
+    U.escXml.removidos = 0;
+    const x = Ooxml.documento(Testes.docExemplo());
+    Testes.ok(!/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(x), 'sobrou caractere de controle');
+    Testes.ok(U.escXml.removidos > 0, 'o VT deveria ter sido contado');
+});
+
+Testes.def('parágrafo de instrução não entra no .docx', () => {
+    const x = Ooxml.documento(Testes.docExemplo());
+    Testes.ok(x.indexOf('INSTRUÇÕES DE USO') < 0, 'instrução vazou para a peça');
+});
+
+Testes.def('filhos de w:sectPr na ordem do schema', () => {
+    const s = Ooxml.sectPr();
+    const ordem = ['<w:pgSz', '<w:pgMar', '<w:cols', '<w:docGrid'];
+    let pos = -1;
+    ordem.forEach(t => {
+        const i = s.indexOf(t);
+        Testes.ok(i > pos, 'fora de ordem: ' + t);
+        pos = i;
+    });
+});
+
+/* Confere contra dados/formatacao.json, não contra números escritos aqui:
+   duas fontes de verdade sobre a formatação da vara acabariam divergindo, e a
+   que perde a discussão é sempre a que ninguém está olhando. */
+Testes.def('formatação da peça confere com a curadoria', () => {
+    const x = Ooxml.documento(Testes.docExemplo());
+    const f = DADOS.formatacao.fonte, pg = DADOS.formatacao.pagina;
+    const m = DADOS.formatacao.margensTwips, el = DADOS.formatacao.entrelinha;
+
+    Testes.ok(x.indexOf('w:ascii="' + f.familia + '"') >= 0, 'fonte divergente de ' + f.familia);
+    Testes.ok(x.indexOf('<w:sz w:val="' + f.tamanhoMeioPonto + '"/>') >= 0,
+              'corpo divergente de ' + (f.tamanhoMeioPonto / 2) + 'pt');
+    Testes.ok(x.indexOf('w:line="' + el.linhaTwips + '" w:lineRule="' + el.regra + '"') >= 0, 'entrelinha divergente');
+    Testes.ok(x.indexOf('w:w="' + pg.larguraTwips + '" w:h="' + pg.alturaTwips + '"') >= 0, 'página divergente');
+    Testes.ok(x.indexOf('w:left="' + m.esquerda + '"') >= 0 &&
+              x.indexOf('w:right="' + m.direita + '"') >= 0, 'margens divergentes');
+});
+
+Testes.def('recuo de primeira linha do corpo vem da curadoria', () => {
+    const rec = DADOS.formatacao.estilos.corpo.recuoPrimeiraLinhaTwips || 0;
+    const x = Ooxml.pPr('corpo');
+    if (rec > 0) Testes.ok(x.indexOf('w:firstLine="' + rec + '"') >= 0, 'recuo do corpo não foi emitido');
+    else Testes.ok(x.indexOf('w:firstLine=') < 0, 'recuo emitido onde a curadoria não pede');
+});
+
+Testes.def('nenhum w:pStyle é emitido', () => {
+    const x = Ooxml.documento(Testes.docExemplo());
+    Testes.ok(x.indexOf('<w:pStyle') < 0, 'pStyle emitido — a formatação é direta por decisão de projeto');
+});
+
+Testes.def('recuo pendente da alínea vira w:hanging', () => {
+    const x = Ooxml.pPr('alinea');
+    Testes.ok(x.indexOf('w:hanging="567"') >= 0, 'recuo negativo não virou hanging');
+    Testes.ok(x.indexOf('w:firstLine="-') < 0, 'firstLine negativo é inválido em OOXML');
+});
+
+Testes.def('nenhum resíduo #{} do PJe no documento', () => {
+    const x = Ooxml.documento(Testes.docExemplo());
+    Testes.ok(x.indexOf('#{') < 0, 'placeholder do PJe escapou para a minuta');
+});
+
+Testes.def('duas gerações produzem bytes idênticos', async () => {
+    const d = Testes.docExemplo(), m = Testes.metaExemplo();
+    /* Ids aleatórios do docExemplo não entram no XML; o que importa é o texto. */
+    const a = await Docx.blob(d, m);
+    const b = await Docx.blob(d, m);
+    const [ba, bb] = await Promise.all([a.arrayBuffer(), b.arrayBuffer()]);
+    Testes.igual(ba.byteLength, bb.byteLength, 'tamanhos diferentes');
+    const ua = new Uint8Array(ba), ub = new Uint8Array(bb);
+    for (let i = 0; i < ua.length; i++) {
+        if (ua[i] !== ub[i]) throw new Error('divergência no byte ' + i);
+    }
+});
+
+Testes.def('o pacote reabre e traz as sete partes', async () => {
+    const b = await Docx.blob(Testes.docExemplo(), Testes.metaExemplo());
+    const z = await JSZip.loadAsync(b);
+    ['[Content_Types].xml', '_rels/.rels', 'word/document.xml', 'word/styles.xml',
+     'word/settings.xml', 'word/_rels/document.xml.rels', 'docProps/core.xml', 'docProps/app.xml']
+        .forEach(c => Testes.ok(z.file(c) !== null, 'faltou ' + c));
+});
+
+Testes.def('nome do arquivo começa por letra e não tem separador', () => {
+    const n = Docx.nomeArquivo(Testes.metaExemplo());
+    Testes.ok(/^[A-Za-z]/.test(n), 'nome não começa por letra: ' + n);
+    Testes.ok(n.indexOf('/') < 0 && n.indexOf(':') < 0, 'separador de caminho no nome: ' + n);
+    Testes.ok(/\.docx$/.test(n), 'extensão errada: ' + n);
+});
+
+Testes.def('data 31/02 é recusada em vez de virar 03/03', () => {
+    Testes.igual(U.dataDeIso('2026-02-31'), null, 'data impossível foi aceita');
+    Testes.ok(U.dataDeIso('2026-02-28') !== null, 'data válida foi recusada');
+});
+
+/* --- Cond ----------------------------------------------------------------- */
+
+Testes.def('Cond avalia os operadores da curadoria', () => {
+    Testes.ok(Cond.avaliar(undefined, {}), 'sem condição é sempre verdadeiro');
+    Testes.ok(Cond.avaliar({ campo: 'x', igual: 'a' }, { x: 'a' }), 'igual deveria bater');
+    Testes.ok(!Cond.avaliar({ campo: 'x', igual: 'a' }, { x: 'b' }), 'igual não deveria bater');
+    Testes.ok(Cond.avaliar({ campo: 'x', diferente: 'a' }, { x: 'b' }), 'diferente deveria bater');
+    Testes.ok(Cond.avaliar({ campo: 'x', preenchido: true }, { x: 'a' }), 'preenchido deveria bater');
+    Testes.ok(!Cond.avaliar({ campo: 'x', preenchido: true }, { x: '' }), 'vazio não é preenchido');
+    Testes.ok(Cond.avaliar({ campo: 'x', umDe: ['a', 'b'] }, { x: 'b' }), 'umDe deveria bater');
+    Testes.ok(Cond.avaliar({ campo: 'x', contem: 'a' }, { x: ['a', 'b'] }), 'contem deveria bater em múltipla');
+    Testes.ok(Cond.avaliar({ campo: 'x', maiorQue: 10 }, { x: 20 }), 'maiorQue numérico');
+    Testes.ok(Cond.avaliar({ campo: 'x', menorQue: '2026-01-01' }, { x: '2025-01-01' }), 'menorQue data');
+    Testes.ok(Cond.avaliar({ campo: 'x', entre: [1, 10] }, { x: 5 }), 'entre numérico');
+    Testes.ok(Cond.avaliar({ campo: 'x', igual: true }, { x: true }), 'igual booleano');
+    Testes.ok(Cond.avaliar({ todos: [{ campo: 'x', igual: 'a' }, { campo: 'y', igual: 'b' }] }, { x: 'a', y: 'b' }),
+              'todos deveria bater');
+    Testes.ok(!Cond.avaliar({ todos: [{ campo: 'x', igual: 'a' }, { campo: 'y', igual: 'b' }] }, { x: 'a', y: 'c' }),
+              'todos não deveria bater');
+    Testes.ok(Cond.avaliar({ algum: [{ campo: 'x', igual: 'a' }, { campo: 'x', igual: 'z' }] }, { x: 'a' }),
+              'algum deveria bater');
+    Testes.ok(Cond.avaliar({ nao: { campo: 'x', igual: 'a' } }, { x: 'b' }), 'nao deveria inverter');
+});
+
+/* --- Marcador --------------------------------------------------------------- */
+
+Testes.def('Marcador nunca processa o valor digitado', () => {
+    const runs = Marcador.paraRuns('**Autor:** {{nome}} pede.',
+        alvo => (alvo === 'nome' ? 'Fulano **não é negrito**' : ''));
+    const doValor = runs.find(r => r.texto.indexOf('Fulano') >= 0);
+    Testes.ok(doValor && !doValor.negrito, 'o ** dentro do valor não deveria abrir negrito');
+    Testes.ok(runs.some(r => r.negrito && r.texto === 'Autor:'), '"Autor:" deveria estar em negrito');
+});
+
+Testes.def('Marcador aceita escape de ** e __', () => {
+    const runs = Marcador.paraRuns('2 \\*\\* 2 = 4, não \\_itálico\\_');
+    Testes.igual(runs.map(r => r.texto).join(''), '2 ** 2 = 4, não _itálico_', 'escape não preservou os caracteres');
+    Testes.ok(runs.every(r => !r.negrito && !r.italico), 'escape não deveria abrir marcador');
+});
+
+/* --- Montagem: grupoAlineas ------------------------------------------------- */
+
+Testes.def('grupoAlineas realoca letras quando um item condicional é excluído', () => {
+    const opc = Testes.opcoesExemplo();
+    const sem = Montagem.montarDocumento(Testes.modeloExemplo(), Testes.valoresExemplo('a'), opc);
+    const com = Montagem.montarDocumento(Testes.modeloExemplo(), Testes.valoresExemplo('b'), opc);
+    const alineas = doc => doc.paragrafos.filter(p => p.estilo === 'alinea').map(p => p.runs.map(r => r.texto).join(''));
+
+    Testes.igual(alineas(sem).length, 3, 'esperava 3 alíneas sem constrição');
+    Testes.igual(alineas(com).length, 4, 'esperava 4 alíneas com constrição');
+    Testes.ok(alineas(sem)[2].indexOf('c) certificado') === 0, 'sem constrição, arquivamento deveria ser "c)"');
+    Testes.ok(alineas(com)[3].indexOf('d) certificado') === 0, 'com constrição, arquivamento deveria virar "d)"');
+});
+
+/* --- Igualdade textual: prévia × docx --------------------------------------- */
+
+Testes.def('prévia e .docx são textualmente idênticos — documento de conferência', () => {
+    const doc = Testes.docExemplo();
+    Testes.igual(Testes.textoDoXml(Ooxml.documento(doc)), Previa.textoPlano(doc),
+                 'divergência entre a prévia e o .docx');
+});
+
+['a', 'b', 'c'].forEach(variante => {
+    Testes.def('prévia e .docx são textualmente idênticos — montarDocumento (' + variante + ')', () => {
+        const doc = Montagem.montarDocumento(Testes.modeloExemplo(), Testes.valoresExemplo(variante), Testes.opcoesExemplo());
+        Testes.igual(Testes.textoDoXml(Ooxml.documento(doc)), Previa.textoPlano(doc),
+                     'divergência na variante "' + variante + '"');
+    });
+});
+
+/* ==========================================================================
+   [23] APP — orquestração.
+   ========================================================================== */
+const App = {
+
+    iniciar() {
+        document.getElementById('btnTema').addEventListener('click', App.alternarTema);
+        App.pintar();
+    },
+
+    alternarTema() {
+        const atual = document.documentElement.getAttribute('data-tema');
+        const novo = atual === 'escuro' ? 'claro' : 'escuro';
+        document.documentElement.setAttribute('data-tema', novo);
+        try { localStorage.setItem('minutar_tema', novo); } catch (e) { /* ver [0] */ }
+    },
+
+    pintar() {
+        const alvo = document.getElementById('principal');
+        const depurar = /[?&]debug=1/.test(location.search);
+
+        let h = '';
+
+        h += '<section class="cartao">' +
+             '<span class="sobrancelha">Fase 1 — conferência do pacote</span>' +
+             '<h2>Minuta de conferência ' + U.selo('CURADO') + '</h2>' +
+             '<p class="legenda">Gera um <code>.docx</code> de texto fixo com a formatação da vara — ' +
+             'Times New Roman 12, entrelinha 1,5, A4 com as margens da peça real. ' +
+             'Serve para responder à única pergunta que importa antes de qualquer outra coisa: ' +
+             '<strong>o PJe aceita o arquivo?</strong></p>' +
+             '<div class="linha-btn">' +
+                '<button class="btn" id="btnGerar" ' +
+                    'title="Monta o pacote OOXML em memória e baixa o arquivo. Nada é enviado para fora deste computador.">' +
+                    'Baixar minuta de conferência (.docx)</button>' +
+                '<button class="btn secundario" id="btnPrevia" ' +
+                    'title="Mostra na tela o mesmo conteúdo que vai para o arquivo, na proporção da folha A4.">' +
+                    'Ver na tela</button>' +
+                U.dica('O documento de conferência exercita de propósito os casos que costumam quebrar um .docx: ' +
+                       'espaço no início e no fim do texto, caractere de controle colado do PJe, negrito no meio ' +
+                       'do parágrafo, recuo pendente da alínea e um parágrafo de instrução que não pode vazar para a peça.') +
+             '</div>' +
+             '<div id="saidaGerar"></div>' +
+             '</section>';
+
+        h += '<section class="cartao" id="cartaoPrevia" hidden>' +
+             '<span class="sobrancelha">Prévia</span>' +
+             '<h2>Como o documento sai</h2>' +
+             '<p class="legenda">Renderização do mesmo conteúdo enviado ao arquivo. ' +
+             'A partir da Fase 2, esta prévia e o <code>.docx</code> passam a nascer da mesma estrutura, ' +
+             'e uma divergência entre as duas reprova o build.</p>' +
+             '<div class="folha" id="folha"></div>' +
+             '</section>';
+
+        h += '<section class="cartao">' +
+             '<span class="sobrancelha">Verificação</span>' +
+             '<h2>Arnês do pacote</h2>' +
+             '<p class="legenda">' + Testes.casos.length + ' asserções sobre a estrutura do OOXML. ' +
+             'As mesmas rodam em <code>npm run conferir</code>, antes de o arquivo chegar a alguém.</p>' +
+             '<div class="linha-btn">' +
+                '<button class="btn secundario" id="btnTestes" ' +
+                    'title="Executa as asserções neste navegador e lista o resultado de cada uma.">' +
+                    'Rodar as asserções</button>' +
+             '</div>' +
+             '<div id="saidaTestes" class="diag"></div>' +
+             '</section>';
+
+        alvo.innerHTML = h;
+
+        document.getElementById('btnGerar').addEventListener('click', App.gerar);
+        document.getElementById('btnPrevia').addEventListener('click', App.previa);
+        document.getElementById('btnTestes').addEventListener('click', App.testar);
+
+        if (depurar) App.testar();
+    },
+
+    async gerar() {
+        const btn = document.getElementById('btnGerar');
+        const saida = document.getElementById('saidaGerar');
+        btn.disabled = true;
+        U.escXml.removidos = 0;
+
+        try {
+            const b = await Docx.baixar(Testes.docExemplo(), Testes.metaExemplo());
+            const kb = (b.size / 1024).toFixed(1);
+            let m = '<div class="aviso-caixa">Arquivo gerado — <strong>' + kb + ' KB</strong>. ' +
+                    'Abra no Word ou no LibreOffice e, em seguida, tente anexá-lo a um processo no PJe. ' +
+                    'É esse anexo que valida a Fase 1.';
+            if (U.escXml.removidos > 0) {
+                m += '<br><br>Foram retirados <strong>' + U.escXml.removidos + '</strong> caracteres invisíveis ' +
+                     'que o formato do Word não aceita. O texto visível não mudou.';
+            }
+            saida.innerHTML = m + '</div>';
+        } catch (e) {
+            /* Nunca expor a mensagem técnica: ela não ajuda o assistente e assusta. */
+            saida.innerHTML = '<div class="aviso-caixa">Não foi possível montar o arquivo neste navegador. ' +
+                              'Verifique se o sistema foi aberto a partir do arquivo HTML completo entregue pelo gabinete.</div>';
+        } finally {
+            btn.disabled = false;
+        }
+    },
+
+    previa() {
+        const doc = Testes.docExemplo();
+        document.getElementById('folha').innerHTML = Previa.renderizar(doc);
+        document.getElementById('cartaoPrevia').hidden = false;
+        document.getElementById('cartaoPrevia').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+
+    async testar() {
+        const saida = document.getElementById('saidaTestes');
+        saida.innerHTML = '<p>Executando…</p>';
+        const res = await Testes.rodar();
+        const falhas = res.filter(r => !r.ok);
+        let h = '<p><strong>' + (res.length - falhas.length) + '/' + res.length + '</strong> ' +
+                (falhas.length ? '<span class="falha">— ' + falhas.length + ' falha(s)</span>'
+                               : '<span class="ok">— tudo verde</span>') + '</p><ol>';
+        res.forEach(r => {
+            h += '<li class="' + (r.ok ? 'ok' : 'falha') + '">' + (r.ok ? '✓ ' : '✗ ') + U.esc(r.nome) +
+                 (r.ok ? '' : ' — ' + U.esc(r.motivo)) + '</li>';
+        });
+        saida.innerHTML = h + '</ol>';
+    }
+};
+</script>
+
+<!-- ==========================================================================
+     [Z] JSZip 3.10.1 — inlinado pelo build, isolado no fim do documento.
+     Inlinada, e não por CDN, porque o sistema roda em máquina de secretaria
+     que pode não ter saída para a internet — e porque um .docx que só é
+     gerado quando o cdnjs responde não é uma ferramenta confiável.
+     A integridade do arquivo é conferida por SHA-256 no build.
+     Licença MIT ou GPLv3, à escolha — (c) 2009-2016 Stuart Knightley.
+     ========================================================================== -->
+<script>/*@JSZIP@*/</script>
+
+<script>App.iniciar();</script>
+
+</body>
+</html>

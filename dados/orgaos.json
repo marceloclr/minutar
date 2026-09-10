@@ -1,0 +1,20 @@
+{
+  "_nota": "Cabeçalho institucional e dados de assinatura. Ficam aqui, e não no modelo, para que corrigir o nome da vara conserte todas as minutas de uma vez.",
+
+  "orgaos": {
+    "3jefp_df": {
+      "id": "3jefp_df",
+      "cabecalho": [
+        "PODER JUDICIÁRIO DA UNIÃO",
+        "TRIBUNAL DE JUSTIÇA DO DISTRITO FEDERAL E DOS TERRITÓRIOS",
+        "3º Juizado Especial da Fazenda Pública e Saúde Pública do DF"
+      ],
+      "nomeCurto": "3º JEFPSP/DF",
+      "local": "Brasília/DF",
+      "tribunal": "8.07",
+      "cargoPadrao": "Juiz(a) de Direito",
+      "fonte": "Sentenca_NaoConhecimento_Embargos_ErroGrosseiro_ADPF615.docx",
+      "consultadoEm": "2026-09-10"
+    }
+  }
+}

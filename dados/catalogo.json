@@ -1,0 +1,31 @@
+{
+  "_nota": "Vocabulários que dirigem os campos do formulário. Acrescentar um item aqui acrescenta a opção na interface, sem tocar em src/.",
+
+  "tiposPeca": [
+    { "id": "sentenca", "rotulo": "Sentença",  "artigo": "a" },
+    { "id": "decisao",  "rotulo": "Decisão",   "artigo": "a" },
+    { "id": "despacho", "rotulo": "Despacho",  "artigo": "o" }
+  ],
+
+  "classes": [
+    { "id": "CUMPSEN",  "sigla": "CUMPSEN",  "rotulo": "Cumprimento de Sentença contra a Fazenda Pública" },
+    { "id": "PROCCOM",  "sigla": "PROCCOM",  "rotulo": "Procedimento Comum Cível" },
+    { "id": "PROCJEF",  "sigla": "PROCJEF",  "rotulo": "Procedimento do Juizado Especial da Fazenda Pública" },
+    { "id": "CARTPREC", "sigla": "CARTPREC", "rotulo": "Carta Precatória Cível" }
+  ],
+
+  "temas": [
+    { "id": "adpf615", "rotulo": "ADPF 615 — inexigibilidade do título",
+      "ajuda": "Cumprimentos de sentença atingidos pela tese vinculante do STF na ADPF 615." },
+    { "id": "saude_medicamento", "rotulo": "Saúde — medicamento",
+      "ajuda": "Demandas de fornecimento de medicamento não padronizado ou em falta." },
+    { "id": "saude_procedimento", "rotulo": "Saúde — procedimento ou leito",
+      "ajuda": "Demandas de cirurgia, exame, internação ou vaga em UTI." },
+    { "id": "geral", "rotulo": "Geral",
+      "ajuda": "Peças que não dependem de um tema específico." }
+  ],
+
+  "tribunais": {
+    "8.07": { "sigla": "TJDFT", "nome": "Tribunal de Justiça do Distrito Federal e dos Territórios" }
+  }
+}

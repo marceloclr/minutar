@@ -1,0 +1,122 @@
+{
+  "_nota": "Padrão visual das quatro rotas de sentença de saúde (Gerador de Sentencas): Cambria 14pt, recuo de primeira linha de 1,25 cm, A4 com margens 25/20/25/30 mm. Não é preferência estética: é o padrão que a vara assina. Alterar aqui altera toda minuta gerada — e só aqui.",
+
+  "_origemDasMargens": "As margens vieram da inspeção do word/document.xml de Sentenca_NaoConhecimento_Embargos_ErroGrosseiro_ADPF615.docx e coincidem exatamente com o @page das quatro rotas (25/20/25/30 mm). Os dois padrões da vara concordam quanto à página e divergiam quanto à fonte; a divergência foi decidida em 2026-09-10 a favor das rotas de saúde.",
+
+  "_pendente": "Duas medidas das rotas ainda NÃO foram adotadas, por falta de instrução expressa: entrelinha (as rotas usam 1,4; aqui está 1,5) e espaço entre parágrafos (as rotas usam 6pt; aqui está 10pt). Confirmar antes de mexer.",
+
+  "fonte": {
+    "familia": "Cambria",
+    "tamanhoMeioPonto": 28,
+    "_tamanho": "w:sz é medido em meios-pontos. 28 = 14pt.",
+    "_fallback": "Cambria acompanha o Microsoft Office. Em máquina sem ela, o Word substitui pela métrica mais próxima; se isso virar problema na secretaria, a alternativa histórica da vara é Times New Roman 12 (24 meios-pontos)."
+  },
+
+  "pagina": {
+    "larguraTwips": 11906,
+    "alturaTwips": 16838,
+    "orientacao": "portrait",
+    "_nota": "A4 em twips (1 cm = 566,93 twips)."
+  },
+
+  "margensTwips": {
+    "superior": 1417,
+    "inferior": 1417,
+    "esquerda": 1700,
+    "direita": 1133,
+    "cabecalho": 708,
+    "rodape": 708
+  },
+
+  "entrelinha": {
+    "linhaTwips": 360,
+    "regra": "auto",
+    "_nota": "360/240 = 1,5 linha."
+  },
+
+  "estilos": {
+    "tituloCentro": {
+      "_uso": "PODER JUDICIÁRIO DA UNIÃO, nome do tribunal, nome da vara, S E N T E N Ç A",
+      "alinhamento": "center",
+      "negrito": true,
+      "espacoAntesTwips": 0,
+      "espacoDepoisTwips": 0,
+      "recuoPrimeiraLinhaTwips": 0
+    },
+    "subtituloCentro": {
+      "_uso": "linha secundária sob o título, sem negrito",
+      "alinhamento": "center",
+      "negrito": false,
+      "espacoAntesTwips": 0,
+      "espacoDepoisTwips": 200,
+      "recuoPrimeiraLinhaTwips": 0
+    },
+    "autuacao": {
+      "_uso": "Processo nº, Classe judicial, Exequente, Executado",
+      "alinhamento": "left",
+      "negrito": false,
+      "espacoAntesTwips": 0,
+      "espacoDepoisTwips": 0,
+      "recuoPrimeiraLinhaTwips": 0
+    },
+    "secao": {
+      "_uso": "I – RELATÓRIO, II – FUNDAMENTAÇÃO, III – DISPOSITIVO",
+      "alinhamento": "center",
+      "negrito": true,
+      "espacoAntesTwips": 240,
+      "espacoDepoisTwips": 200,
+      "recuoPrimeiraLinhaTwips": 0
+    },
+    "subsecao": {
+      "_uso": "II.1 – Desvio de finalidade da via declaratória…",
+      "alinhamento": "both",
+      "negrito": true,
+      "espacoAntesTwips": 240,
+      "espacoDepoisTwips": 120,
+      "recuoPrimeiraLinhaTwips": 0
+    },
+    "corpo": {
+      "_uso": "parágrafo comum de fundamentação",
+      "_recuo": "1,25 cm = 709 twips (1 cm = 566,93). É o text-indent das quatro rotas. Só o corpo recua: cabeçalho, autuação, seções e assinatura ficam rentes à margem, como o p.sf do modelo em HTML.",
+      "alinhamento": "both",
+      "negrito": false,
+      "espacoAntesTwips": 0,
+      "espacoDepoisTwips": 200,
+      "recuoPrimeiraLinhaTwips": 709
+    },
+    "alinea": {
+      "_uso": "a) b) c) d) do dispositivo",
+      "alinhamento": "both",
+      "negrito": false,
+      "espacoAntesTwips": 0,
+      "espacoDepoisTwips": 200,
+      "recuoEsquerdaTwips": 567,
+      "recuoPrimeiraLinhaTwips": -567,
+      "_recuo": "Recuo pendente (hanging): a letra fica na margem e o texto alinha 1 cm adiante."
+    },
+    "fecho": {
+      "_uso": "Publique-se. Registre-se. Intimem-se.",
+      "alinhamento": "both",
+      "negrito": false,
+      "espacoAntesTwips": 240,
+      "espacoDepoisTwips": 240,
+      "recuoPrimeiraLinhaTwips": 0
+    },
+    "assinatura": {
+      "_uso": "Brasília/DF, data — e a linha do magistrado",
+      "alinhamento": "center",
+      "negrito": false,
+      "espacoAntesTwips": 240,
+      "espacoDepoisTwips": 0,
+      "recuoPrimeiraLinhaTwips": 0
+    },
+    "vazio": {
+      "_uso": "linha em branco deliberada",
+      "alinhamento": "left",
+      "negrito": false,
+      "espacoAntesTwips": 0,
+      "espacoDepoisTwips": 0,
+      "recuoPrimeiraLinhaTwips": 0
+    }
+  }
+}
