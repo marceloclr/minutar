@@ -69,7 +69,7 @@ ser verdade, o schema está incompleto, e é esse o achado a tratar.
 | `dados/catalogo.json` | Classes, temas e tipos de peça que alimentam o formulário |
 | `dados/fundamentos.json` | Indireção de citações: `@ref:cpc_1022` → texto. Corrigir aqui corrige todos os modelos |
 | `dados/ordem.json` | Ordem dos modelos na vitrine. A ordem é dado |
-| `dados/modelos/*.json` | Um arquivo por tipo de peça: campos do formulário + corpo do documento |
+| `dados/modelos/*.json` | Um arquivo por tipo de peça: campos do formulário + corpo do documento. As 4 rotas de sentença de saúde já convertidas: procedência com prazo (mora do Enunciado 93), procedência com tutela já cumprida, extinção por falta de interesse, extinção do cumprimento pela satisfação |
 
 ### Blocos do motor
 
@@ -138,6 +138,6 @@ Nada sai do computador do assistente. Não há servidor.
 | | | |
 |---|---|---|
 | 2 | IR e renderizadores — **concluída** | prévia e `.docx` textualmente idênticos (verificado por teste automático) |
-| 3 | Schema, formulário e os modelos reais | o `.docx` gerado reproduz a peça da vara, parágrafo a parágrafo |
+| 3 | Schema e os modelos reais — **as 4 rotas convertidas**, falta o formulário | o `.docx` gerado reproduz a peça da vara, parágrafo a parágrafo — falta só o Form/Vitrine para um assistente alcançar os modelos pela interface |
 | 4 | CNJ com dígito verificador, persistência, LGPD | nenhum dado sensível fora do `document.xml` |
 | 5 | Rascunhos e transferência | o assistente cria um modelo, exporta; o curador promove à base sem tocar em `src/` |

@@ -360,6 +360,19 @@ const U = {
                'T' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()) + ':' + p(d.getUTCSeconds()) + 'Z';
     },
 
+    /* --- Números ---------------------------------------------------------- */
+
+    /* "R$ 1.234,56" — sem depender de Intl/toLocaleString, que varia de
+       suporte por ambiente (o vm de tools/conferir-docx.mjs não tem ICU
+       completo garantido). Só para valor não-negativo, o único caso real. */
+    moeda(v) {
+        const n = Number(v);
+        if (isNaN(n)) return String(v);
+        const [inteiro, centavos] = Math.abs(n).toFixed(2).split('.');
+        const comPontos = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        return (n < 0 ? '-R$ ' : 'R$ ') + comPontos + ',' + centavos;
+    },
+
     /* --- Nomes de arquivo ----------------------------------------------- */
 
     /* Nome sempre começa por letra: um '-' inicial faz ferramentas de linha de
@@ -646,15 +659,16 @@ const Montagem = {
     },
 
     /* Só os filtros já exercitados por algum modelo. Os demais listados em
-       validar-modelos.mjs (moeda, percentual, extenso, cnj) entram com o
-       conteúdo real da Fase 3 — implementar sem um uso concreto para
-       conferir contra é inventar comportamento. */
+       validar-modelos.mjs (percentual, extenso, cnj) entram com o conteúdo
+       real que os use — implementar sem um uso concreto para conferir
+       contra é inventar comportamento. */
     aplicarFiltro(v, filtro) {
         if (v == null || v === '') return '';
         switch (filtro) {
             case 'dataExtenso': return U.dataExtenso(v) || '';
             case 'maiusculas':  return String(v).toUpperCase();
             case 'sintetico':   return (v && typeof v === 'object' && v.sintetico) || String(v);
+            case 'moeda':       return U.moeda(v);
             default:            return String(v);
         }
     }
@@ -1202,6 +1216,26 @@ const Testes = {
         return Object.assign({}, base, porCausa[causa]);
     },
 
+    /* Valores de exemplo para o quarto modelo real da curadoria
+       (extincao_cumprimento_satisfacao) — com e sem constrição. */
+    valoresRotaD(comConstricao) {
+        const base = {
+            numero_processo: '0700003-33.2026.8.07.0016',
+            autor_nome: 'Fulano Terceiro',
+            objeto: 'fornecimento de medicamento não padronizado',
+            id_sentenca: '60606060',
+            data_sentenca: '2025-11-01',
+            id_decisao_prazo: '61616161',
+            data_cumprimento: '2026-08-01',
+            id_defensoria: '62626262',
+            id_oficio_ses: '63636363',
+            id_mp: '64646464',
+            temConstricao: comConstricao
+        };
+        if (comConstricao) return Object.assign({}, base, { id_constricao: '65656565', valor_constricao: 1234.5 });
+        return base;
+    },
+
     /* Extrai o texto visível de um word/document.xml já montado, para
        conferir contra Previa.textoPlano(doc) — as duas trilhas do mesmo IR. */
     textoDoXml(xml) {
@@ -1583,6 +1617,42 @@ Testes.def('Rota B — modelo real gera peça coerente', () => {
         Testes.ok(texto.indexOf('b) dê-se ciência') >= 0, 'alínea "b" não numerou como esperado (' + causa + ')');
         Testes.ok(texto.indexOf('c) certificado o trânsito em julgado, procedam-se') >= 0,
                   'alínea "c" não numerou como esperado (' + causa + ')');
+    });
+});
+
+/* --- Modelo real: extincao_cumprimento_satisfacao (Rota D) ----------------- */
+
+[false, true].forEach(comConstricao => {
+    Testes.def('Rota D — modelo real gera peça coerente (constrição: ' + comConstricao + ')', () => {
+        const modelo = MODELOS.find(m => m.id === 'extincao_cumprimento_satisfacao');
+        Testes.ok(modelo, 'modelo "extincao_cumprimento_satisfacao" não está em MODELOS — rode npm run build antes');
+        if (!modelo) return;
+
+        const doc = Montagem.montarDocumento(modelo, Testes.valoresRotaD(comConstricao), Testes.opcoesExemplo());
+        const texto = Previa.textoPlano(doc);
+        const sufixo = comConstricao ? 'com constrição' : 'sem constrição';
+
+        Testes.igual(Testes.textoDoXml(Ooxml.documento(doc)), texto, 'divergência entre prévia e .docx na Rota D (' + sufixo + ')');
+        Testes.ok(texto.indexOf('{{') < 0, 'sobrou placeholder {{...}} não resolvido (' + sufixo + ')');
+        Testes.ok(texto.indexOf('a) intimem-se') >= 0, 'alínea "a" não numerou como esperado (' + sufixo + ')');
+        Testes.ok(texto.indexOf('b) dê-se ciência') >= 0, 'alínea "b" não numerou como esperado (' + sufixo + ')');
+        Testes.ok(texto.indexOf('certificado o trânsito em julgado, procedam-se à baixa e ao arquivamento.') >= 0,
+                  'alínea do trânsito em julgado não apareceu (' + sufixo + ')');
+
+        if (comConstricao) {
+            Testes.ok(texto.indexOf('LEVANTE-SE a constrição') >= 0, 'dispositivo deveria levantar a constrição (' + sufixo + ')');
+            Testes.ok(texto.indexOf('R$ 1.234,50') >= 0, 'valor da constrição não formatou como moeda (' + sufixo + ')');
+            Testes.ok(texto.indexOf('c) expeça-se o necessário ao levantamento') >= 0,
+                      'alínea "c" (constrição) deveria existir e ser a letra "c" (' + sufixo + ')');
+            Testes.ok(texto.indexOf('d) certificado o trânsito em julgado') >= 0,
+                      'com constrição, trânsito em julgado deveria virar alínea "d" (' + sufixo + ')');
+        } else {
+            Testes.ok(texto.indexOf('LEVANTE-SE') < 0, 'não deveria haver levantamento de constrição sem ela (' + sufixo + ')');
+            Testes.ok(texto.indexOf('expeça-se o necessário ao levantamento') < 0,
+                      'alínea de constrição não deveria aparecer sem ela (' + sufixo + ')');
+            Testes.ok(texto.indexOf('c) certificado o trânsito em julgado') >= 0,
+                      'sem constrição, trânsito em julgado deveria realocar para "c" — é a pendência da Rota D (' + sufixo + ')');
+        }
     });
 });
 

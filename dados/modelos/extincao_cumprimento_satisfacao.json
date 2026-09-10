@@ -1,0 +1,125 @@
+{
+  "_nota": "Convertido de ~/Documentos/GitHub/Gerador de Sentencas/MODELO_SENTENCA_EXTINCAO_CUMPRIMENTO_ROTA_D.html em 2026-09-10. Texto transcrito literalmente. É o modelo que motivou o desenho de grupoAlineas: a alínea 'c' (levantamento da constrição) só existe quando temConstricao=true, e a letra da alínea seguinte ('d') se realoca sozinha quando 'c' é excluída — sem precisar de numeração escrita à mão em lugar nenhum.",
+  "_citacoesNaoIndiretadas": "A fundamentação e o dispositivo citam o CPC por extenso ('do Código de Processo Civil', não 'do CPC', diferente das outras 3 rotas) — preservado literal, sem @ref, para não trocar a redação original por uma abreviação que não é a que está no HTML fonte.",
+
+  "esquema": 1,
+  "id": "extincao_cumprimento_satisfacao",
+  "versao": "1.0.0",
+  "oficial": true,
+
+  "metadados": {
+    "titulo": "Extinção do Cumprimento de Sentença por Satisfação da Obrigação",
+    "tipoPeca": "sentenca",
+    "orgao": "3jefp_df",
+    "tema": "saude_procedimento",
+    "classesAplicaveis": ["CUMPSEN"],
+    "atualizadoEm": "2026-09-10",
+    "curador": "Gabinete"
+  },
+
+  "aplicabilidade": [
+    "Feito em fase de cumprimento de sentença (título executivo judicial já formado; o Distrito Federal já foi condenado por sentença de mérito).",
+    "A obrigação foi satisfeita — o procedimento de saúde foi efetivamente realizado no curso da execução."
+  ],
+
+  "triagem": {
+    "excluir": [
+      "Fase de conhecimento, sem título executivo formado — usar o modelo de extinção por falta de interesse, não este.",
+      "Obrigação ainda não satisfeita — não é caso de extinção do cumprimento."
+    ]
+  },
+
+  "campos": [
+    { "id": "numero_processo", "tipo": "processo", "rotulo": "Número do processo (CNJ)",
+      "ajuda": "Número único do processo no formato CNJ, usado na identificação da peça e no cabeçalho da minuta.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "autor_nome", "tipo": "parte", "rotulo": "Nome da parte autora",
+      "ajuda": "Nome completo da pessoa em favor de quem o Distrito Federal foi condenado; aparece no cabeçalho.",
+      "obrigatorio": true, "sensivel": true },
+
+    { "id": "objeto", "tipo": "texto", "rotulo": "Objeto da prestação de saúde",
+      "ajuda": "Descreva como substantivo simples (ex.: \"exame de ressonância magnética\"), sem artigo inicial — o texto do modelo já traz \"consistente em\" antes do campo.",
+      "obrigatorio": true, "sensivel": true },
+
+    { "id": "id_sentenca", "tipo": "texto", "rotulo": "Id. da sentença condenatória",
+      "ajuda": "Identificador do documento no PJe referente à sentença de mérito que condenou o Distrito Federal, citada no relatório.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "data_sentenca", "tipo": "data", "rotulo": "Data da sentença condenatória",
+      "ajuda": "Data da sentença de mérito que condenou o Distrito Federal, citada no relatório junto com o Id.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "id_decisao_prazo", "tipo": "texto", "rotulo": "Id. da decisão que fixou prazo no cumprimento",
+      "ajuda": "Identificador do documento no PJe referente à decisão que iniciou o cumprimento de sentença fixando prazo.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "data_cumprimento", "tipo": "data", "rotulo": "Data da realização do procedimento",
+      "ajuda": "Data em que o procedimento foi efetivamente realizado no curso da execução, comprovando a satisfação da obrigação.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "id_defensoria", "tipo": "texto", "rotulo": "Id. da informação da Defensoria Pública",
+      "ajuda": "Identificador do documento no PJe em que a Defensoria Pública informou a realização do procedimento.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "id_oficio_ses", "tipo": "texto", "rotulo": "Id. do ofício da Secretaria de Saúde",
+      "ajuda": "Identificador do documento no PJe em que a Secretaria de Estado de Saúde confirmou a realização do procedimento.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "id_mp", "tipo": "texto", "rotulo": "Id. da manifestação do Ministério Público",
+      "ajuda": "Identificador do documento no PJe referente à manifestação do Ministério Público pela extinção, citado no relatório.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "temConstricao", "tipo": "booleano", "rotulo": "Houve constrição (bloqueio, penhora ou astreintes)?",
+      "ajuda": "Define se a fundamentação, o dispositivo e os comandos cartorários incluem o levantamento da constrição e a revogação de multa.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "id_constricao", "tipo": "texto", "rotulo": "Id. da decisão que fixou a constrição",
+      "ajuda": "Identificador do documento no PJe referente à decisão que determinou o bloqueio, a penhora ou as astreintes a levantar.",
+      "obrigatorio": false, "sensivel": false,
+      "mostrarQuando": { "campo": "temConstricao", "igual": true } },
+
+    { "id": "valor_constricao", "tipo": "moeda", "rotulo": "Valor da constrição a levantar",
+      "ajuda": "Valor em reais bloqueado ou penhorado, citado no comando de expedição do necessário ao levantamento.",
+      "obrigatorio": false, "sensivel": false,
+      "mostrarQuando": { "campo": "temConstricao", "igual": true } }
+  ],
+
+  "corpo": [
+    { "id": "processo_linha", "estilo": "autuacao", "texto": "Processo n.º: {{numero_processo}}" },
+    { "id": "autor_linha", "estilo": "autuacao", "texto": "Autor: {{autor_nome}}" },
+    { "id": "vistos", "estilo": "vistos", "texto": "Vistos etc." },
+
+    { "id": "sec_relatorio", "estilo": "secao", "texto": "I. RELATÓRIO" },
+    { "id": "relatorio_1", "estilo": "corpo",
+      "texto": "Relatório dispensado (@ref:lei9099_38 c/c @ref:lei12153_27). Registra-se, para contextualização, que o Distrito Federal foi condenado, por sentença (Id. {{id_sentenca}}, de {{data_sentenca|dataExtenso}}), na obrigação de fazer consistente em {{objeto}}, e que se iniciou o cumprimento de sentença, com fixação de prazo (Id. {{id_decisao_prazo}}). No curso da execução, a obrigação foi satisfeita: o procedimento foi efetivamente realizado em {{data_cumprimento|dataExtenso}}, conforme informado pela Defensoria Pública (Id. {{id_defensoria}}) e confirmado pela Secretaria de Estado de Saúde (Id. {{id_oficio_ses}}). O Ministério Público manifestou-se pela extinção (Id. {{id_mp}})." },
+
+    { "id": "sec_fundamentacao", "estilo": "secao", "texto": "II. FUNDAMENTAÇÃO" },
+    { "id": "fund_1", "estilo": "corpo",
+      "texto": "Satisfeita a obrigação que constitui o título, exaure-se a finalidade da execução. O art. 924, II, do Código de Processo Civil, aplicável ao cumprimento de sentença por força do art. 513 do mesmo Código, extingue a execução quando a obrigação é satisfeita; e o art. 925 exige que a extinção seja declarada por sentença." },
+    { "id": "fund_2", "estilo": "corpo",
+      "texto": "No caso, o próprio bem da vida perseguido — a realização do procedimento — foi entregue à parte autora, o que é reconhecido pela Defensoria Pública e confirmado pela rede pública de saúde. Não subsiste obrigação a cumprir, e a extinção se impõe pela satisfação, e não por falta de interesse: o interesse existiu e foi plenamente atendido no curso da própria execução." },
+
+    { "id": "constricao_fund", "estilo": "corpo", "quando": { "campo": "temConstricao", "igual": true },
+      "texto": "Registra-se que a constrição de Id. {{id_constricao}} perdeu a razão de ser com a satisfação da obrigação, impondo-se o seu levantamento e a revogação de eventual multa cominatória, que é acessória e não subsiste sem a obrigação principal." },
+
+    { "id": "sec_dispositivo", "estilo": "secao", "texto": "III. DISPOSITIVO" },
+    { "id": "disp_1", "estilo": "corpo",
+      "texto": "Ante o exposto, **JULGO EXTINTO O CUMPRIMENTO DE SENTENÇA, PELA SATISFAÇÃO DA OBRIGAÇÃO**, com fundamento no art. 924, II, c/c o art. 925 do Código de Processo Civil." },
+
+    { "id": "constricao_disp", "estilo": "corpo", "quando": { "campo": "temConstricao", "igual": true },
+      "texto": "**LEVANTE-SE** a constrição de Id. {{id_constricao}} e **REVOGO** eventual multa cominatória fixada, por perda de objeto." },
+
+    { "id": "custas", "estilo": "corpo",
+      "texto": "Sem custas e sem honorários advocatícios (@ref:lei9099_55 c/c @ref:lei12153_27)." },
+
+    { "id": "sec_comandos", "estilo": "secao", "texto": "IV. COMANDOS CARTORÁRIOS" },
+    { "id": "comandos", "tipo": "grupoAlineas", "filhos": [
+      { "id": "intimacao", "estilo": "alinea", "texto": "{{@alinea:intimacao}}) intimem-se as partes;" },
+      { "id": "mp", "estilo": "alinea", "texto": "{{@alinea:mp}}) dê-se ciência ao Ministério Público do Distrito Federal e Territórios — PROSUS;" },
+      { "id": "constricao_alinea", "estilo": "alinea", "quando": { "campo": "temConstricao", "igual": true },
+        "texto": "{{@alinea:constricao_alinea}}) expeça-se o necessário ao levantamento da constrição, no valor de {{valor_constricao|moeda}}, em favor de quem de direito;" },
+      { "id": "transito", "estilo": "alinea", "texto": "{{@alinea:transito}}) certificado o trânsito em julgado, procedam-se à baixa e ao arquivamento." }
+    ] }
+  ]
+}
