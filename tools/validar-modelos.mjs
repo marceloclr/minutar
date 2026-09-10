@@ -291,6 +291,85 @@ arquivos.forEach(arquivo => {
     const FILTROS = ['cnj', 'dataExtenso', 'sintetico', 'maiusculas', 'moeda', 'percentual', 'extenso'];
     const estilosValidos = fmt && fmt.estilos ? Object.keys(fmt.estilos) : [];
 
+    /* Um texto curado isolado — de no.texto, de um caso/padrao de escolha, ou
+       de um elemento string de partes. Mesmas checagens para as três origens. */
+    function validarTexto(t, onde) {
+        if (CONTROLE.test(t)) erro(onde, 'caractere de controle no texto');
+
+        /* A decisão do usuário: o sistema resolve tudo, nada de #{} chega ao PJe. */
+        if (t.indexOf('#{') >= 0) erro(onde, 'resíduo de placeholder do PJe (#{…}) — este sistema resolve os valores');
+
+        /* Marcador inline não fechado abre negrito e nunca fecha. */
+        const semEscape = t.replace(/\\[*_]/g, '');
+        if (((semEscape.match(/\*\*/g) || []).length) % 2 !== 0) erro(onde, 'marcador ** não fechado');
+        if (((semEscape.match(/__/g) || []).length) % 2 !== 0) erro(onde, 'marcador __ não fechado');
+
+        (t.match(/\{\{([^}]*)\}\}/g) || []).forEach(ph => {
+            const dentro = ph.slice(2, -2).trim();
+            const [alvo, filtro] = dentro.split('|').map(s => s && s.trim());
+
+            if (filtro && FILTROS.indexOf(filtro) < 0) erro(onde, 'filtro inexistente: |' + filtro);
+
+            if (alvo.startsWith('@')) {
+                const sist = alvo.slice(1).split(':')[0];
+                if (['hoje', 'local', 'magistrado', 'orgao', 'alinea'].indexOf(sist) < 0) {
+                    erro(onde, 'valor de sistema desconhecido: ' + alvo);
+                }
+                if (sist === 'alinea') {
+                    const ref = alvo.split(':')[1];
+                    if (!ref) erro(onde, '{{@alinea:…}} sem id de referência');
+                }
+                return;
+            }
+
+            if (!porId.has(alvo)) { erro(onde, 'placeholder {{' + alvo + '}} sem campo correspondente'); return; }
+            usados.add(alvo);
+
+            const def = porId.get(alvo);
+            if (filtro === 'sintetico' && def.tipo !== 'parte') erro(onde, '|sintetico só se aplica a campo do tipo parte');
+            if (filtro === 'dataExtenso' && def.tipo !== 'data') erro(onde, '|dataExtenso só se aplica a campo de data');
+            if (filtro === 'cnj' && def.tipo !== 'processo') erro(onde, '|cnj só se aplica a campo do tipo processo');
+            if (filtro === 'moeda' && ['moeda', 'numero'].indexOf(def.tipo) < 0) erro(onde, '|moeda só se aplica a valor numérico');
+        });
+    }
+
+    /* escolha isolada — de um nó do corpo ou de um elemento {escolha:...} de
+       partes. idNo é só para a mensagem do aviso de cobertura. */
+    function validarEscolha(e, idNo, onde) {
+        if (!e.campo) { erro(onde, 'escolha sem "campo"'); return; }
+        if (!porId.has(e.campo)) { erro(onde, 'escolha sobre campo inexistente: ' + e.campo); return; }
+        usados.add(e.campo);
+
+        if (!('padrao' in e)) erro(onde, 'escolha sem "padrao" — ausência de padrão é ambiguidade');
+        else if (typeof e.padrao === 'string') validarTexto(e.padrao, onde + '.padrao');
+
+        const vistos = new Set();
+        const def = porId.get(e.campo);
+        (e.casos || []).forEach((c, i) => {
+            if (vistos.has(JSON.stringify(c.valor))) erro(onde, 'caso repetido: ' + JSON.stringify(c.valor));
+            vistos.add(JSON.stringify(c.valor));
+            if (typeof c.texto === 'string') validarTexto(c.texto, onde + '.casos[' + i + ']');
+            if (def && def.tipo === 'selecao') {
+                const validos = (def.opcoes || []).map(o => o.valor);
+                if (validos.indexOf(c.valor) < 0) erro(onde + '.casos[' + i + ']', 'valor fora das opções de ' + e.campo);
+            }
+            if (def && def.tipo === 'booleano' && typeof c.valor !== 'boolean') {
+                erro(onde + '.casos[' + i + ']', 'caso de booleano precisa ser true/false');
+            }
+        });
+
+        /* Uma opção sem caso e sem padrão faz o parágrafo sumir sem que
+           ninguém tenha decidido isso. */
+        if (def && def.tipo === 'selecao' && e.padrao === null) {
+            const cobertos = (e.casos || []).map(c => c.valor);
+            (def.opcoes || []).forEach(o => {
+                if (cobertos.indexOf(o.valor) < 0) {
+                    aviso(onde, 'escolher "' + o.rotulo + '" faz o parágrafo "' + (idNo || '?') + '" desaparecer da peça');
+                }
+            });
+        }
+    }
+
     function validarNo(no, onde, dentroDeAlineas) {
         if (!no.id) erro(onde, 'nó do corpo sem id');
         else if (idsNo.has(no.id)) erro(onde, 'id de parágrafo duplicado: ' + no.id);
@@ -301,91 +380,36 @@ arquivos.forEach(arquivo => {
         if (no.estilo && estilosValidos.indexOf(no.estilo) < 0) {
             erro(onde, 'estilo "' + no.estilo + '" não existe em formatacao.json');
         }
-        if (no.texto != null && no.escolha) erro(onde, 'nó com "texto" e "escolha" ao mesmo tempo');
+
+        const modos = ['texto' in no, !!no.escolha, !!no.partes].filter(Boolean).length;
+        if (modos > 1) erro(onde, 'nó com mais de um de "texto"/"escolha"/"partes" ao mesmo tempo');
+
         if (no.quando) validarCond(no.quando, onde + '.quando');
 
         if (no.tipo === 'grupoAlineas') {
-            if (no.texto != null) erro(onde, 'grupoAlineas não tem texto próprio');
+            if (modos) erro(onde, 'grupoAlineas não tem texto próprio');
             if (!(no.filhos || []).length) erro(onde, 'grupoAlineas sem filhos');
             (no.filhos || []).forEach((f, i) => validarNo(f, onde + '.filhos[' + i + ']', true));
             return;
         }
 
-        const textos = [];
-        if (typeof no.texto === 'string') textos.push(no.texto);
-        if (no.escolha) {
-            const e = no.escolha;
-            if (!e.campo) erro(onde, 'escolha sem "campo"');
-            else if (!porId.has(e.campo)) erro(onde, 'escolha sobre campo inexistente: ' + e.campo);
-            else usados.add(e.campo);
+        if (typeof no.texto === 'string') validarTexto(no.texto, onde);
+        if (no.escolha) validarEscolha(no.escolha, no.id, onde);
 
-            if (!('padrao' in e)) erro(onde, 'escolha sem "padrao" — ausência de padrão é ambiguidade');
-            const vistos = new Set();
-            (e.casos || []).forEach((c, i) => {
-                if (vistos.has(JSON.stringify(c.valor))) erro(onde, 'caso repetido: ' + JSON.stringify(c.valor));
-                vistos.add(JSON.stringify(c.valor));
-                if (typeof c.texto === 'string') textos.push(c.texto);
-                const def = porId.get(e.campo);
-                if (def && def.tipo === 'selecao') {
-                    const validos = (def.opcoes || []).map(o => o.valor);
-                    if (validos.indexOf(c.valor) < 0) erro(onde + '.casos[' + i + ']', 'valor fora das opções de ' + e.campo);
-                }
-                if (def && def.tipo === 'booleano' && typeof c.valor !== 'boolean') {
-                    erro(onde + '.casos[' + i + ']', 'caso de booleano precisa ser true/false');
-                }
-            });
-            /* Uma opção sem caso e sem padrão faz o parágrafo sumir sem que
-               ninguém tenha decidido isso. */
-            const def = porId.get(e.campo);
-            if (def && def.tipo === 'selecao' && e.padrao === null) {
-                const cobertos = (e.casos || []).map(c => c.valor);
-                (def.opcoes || []).forEach(o => {
-                    if (cobertos.indexOf(o.valor) < 0) {
-                        aviso(onde, 'escolher "' + o.rotulo + '" faz o parágrafo "' + no.id + '" desaparecer da peça');
-                    }
-                });
+        /* partes: sequência de trechos fixos e escolhas inline, para quando a
+           variação fica no meio da frase (não dá para trocar o parágrafo
+           inteiro). Ver [11] Montagem em src/template.html. */
+        if (no.partes) {
+            if (!Array.isArray(no.partes) || !no.partes.length) {
+                erro(onde, '"partes" precisa ser uma lista não vazia');
             }
-        }
-
-        textos.forEach(t => {
-            if (CONTROLE.test(t)) erro(onde, 'caractere de controle no texto');
-
-            /* A decisão do usuário: o sistema resolve tudo, nada de #{} chega ao PJe. */
-            if (t.indexOf('#{') >= 0) erro(onde, 'resíduo de placeholder do PJe (#{…}) — este sistema resolve os valores');
-
-            /* Marcador inline não fechado abre negrito e nunca fecha. */
-            const semEscape = t.replace(/\\[*_]/g, '');
-            if (((semEscape.match(/\*\*/g) || []).length) % 2 !== 0) erro(onde, 'marcador ** não fechado');
-            if (((semEscape.match(/__/g) || []).length) % 2 !== 0) erro(onde, 'marcador __ não fechado');
-
-            (t.match(/\{\{([^}]*)\}\}/g) || []).forEach(ph => {
-                const dentro = ph.slice(2, -2).trim();
-                const [alvo, filtro] = dentro.split('|').map(s => s && s.trim());
-
-                if (filtro && FILTROS.indexOf(filtro) < 0) erro(onde, 'filtro inexistente: |' + filtro);
-
-                if (alvo.startsWith('@')) {
-                    const sist = alvo.slice(1).split(':')[0];
-                    if (['hoje', 'local', 'magistrado', 'orgao', 'alinea'].indexOf(sist) < 0) {
-                        erro(onde, 'valor de sistema desconhecido: ' + alvo);
-                    }
-                    if (sist === 'alinea') {
-                        const ref = alvo.split(':')[1];
-                        if (!ref) erro(onde, '{{@alinea:…}} sem id de referência');
-                    }
-                    return;
-                }
-
-                if (!porId.has(alvo)) { erro(onde, 'placeholder {{' + alvo + '}} sem campo correspondente'); return; }
-                usados.add(alvo);
-
-                const def = porId.get(alvo);
-                if (filtro === 'sintetico' && def.tipo !== 'parte') erro(onde, '|sintetico só se aplica a campo do tipo parte');
-                if (filtro === 'dataExtenso' && def.tipo !== 'data') erro(onde, '|dataExtenso só se aplica a campo de data');
-                if (filtro === 'cnj' && def.tipo !== 'processo') erro(onde, '|cnj só se aplica a campo do tipo processo');
-                if (filtro === 'moeda' && ['moeda', 'numero'].indexOf(def.tipo) < 0) erro(onde, '|moeda só se aplica a valor numérico');
+            (no.partes || []).forEach((parte, i) => {
+                const ondeP = onde + '.partes[' + i + ']';
+                if (typeof parte === 'string') { validarTexto(parte, ondeP); return; }
+                if (parte && parte.escolha) { validarEscolha(parte.escolha, no.id, ondeP); return; }
+                erro(ondeP, 'elemento de "partes" precisa ser string ou {escolha:...}');
             });
-        });
+        }
     }
 
     (m.corpo || []).forEach((no, i) => validarNo(no, rel + ' corpo[' + i + ']', false));

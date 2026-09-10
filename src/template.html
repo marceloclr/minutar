@@ -581,24 +581,49 @@ const Montagem = {
             return;
         }
 
-        const texto = Montagem.textoDoNo(no, ctx);
-        if (texto == null) return;
-
-        const runs = Marcador.paraRuns(texto, alvo => Montagem.resolverPlaceholder(alvo, ctx));
+        let runs;
+        if (no.partes) {
+            runs = Montagem.runsDePartes(no.partes, ctx);
+            if (!runs.length) return;
+        } else {
+            const texto = Montagem.textoDoNo(no, ctx);
+            if (texto == null) return;
+            runs = Marcador.paraRuns(texto, alvo => Montagem.resolverPlaceholder(alvo, ctx));
+        }
         paragrafos.push({ id: no.id, estilo: no.estilo, destino: no.destino || 'peca', runs });
     },
 
-    /* null distingue "sem texto, omitir o parágrafo" de "" (parágrafo vazio
-       deliberado) — mesma semântica de escolha.padrao validada no build. */
+    /* "partes": trechos fixos e escolhas alternados na mesma frase — para
+       quando a variação está no meio do parágrafo, não no parágrafo inteiro.
+       Cada parte vira seus próprios runs, resolvida e marcada de forma
+       independente: um ** aberto numa parte precisa fechar na mesma parte,
+       não atravessa para a próxima (limite aceito, documentado aqui). */
+    runsDePartes(partes, ctx) {
+        const runs = [];
+        partes.forEach(parte => {
+            let texto;
+            if (typeof parte === 'string') texto = parte;
+            else if (parte && parte.escolha) texto = Montagem.textoDaEscolha(parte.escolha, ctx);
+            else texto = '';
+
+            if (texto == null || texto === '') return;
+            runs.push(...Marcador.paraRuns(texto, alvo => Montagem.resolverPlaceholder(alvo, ctx)));
+        });
+        return runs;
+    },
+
+    /* null distingue "sem texto, omitir" de "" (vazio deliberado) — mesma
+       semântica de escolha.padrao validada no build. */
+    textoDaEscolha(e, ctx) {
+        const v = ctx.valores[e.campo];
+        const caso = (e.casos || []).find(c => Cond.iguais(v, c.valor));
+        if (caso) return caso.texto;
+        return e.padrao == null ? null : e.padrao;
+    },
+
     textoDoNo(no, ctx) {
         if (typeof no.texto === 'string') return no.texto;
-        if (no.escolha) {
-            const e = no.escolha;
-            const v = ctx.valores[e.campo];
-            const caso = (e.casos || []).find(c => Cond.iguais(v, c.valor));
-            if (caso) return caso.texto;
-            return e.padrao == null ? null : e.padrao;
-        }
+        if (no.escolha) return Montagem.textoDaEscolha(no.escolha, ctx);
         return '';
     },
 
@@ -1315,6 +1340,47 @@ Testes.def('grupoAlineas realoca letras quando um item condicional é excluído'
     Testes.igual(alineas(com).length, 4, 'esperava 4 alíneas com constrição');
     Testes.ok(alineas(sem)[2].indexOf('c) certificado') === 0, 'sem constrição, arquivamento deveria ser "c)"');
     Testes.ok(alineas(com)[3].indexOf('d) certificado') === 0, 'com constrição, arquivamento deveria virar "d)"');
+});
+
+/* --- Montagem: partes (escolha inline no meio da frase) --------------------- */
+
+Testes.def('partes monta trechos fixos e escolhas inline corretamente', () => {
+    const modelo = {
+        corpo: [
+            { id: 'p1', estilo: 'corpo', partes: [
+                'Superando o teto ',
+                { escolha: { campo: 'tipoTeto', casos: [
+                    { valor: 'consulta', texto: 'de 100 dias, próprio de consultas e exames,' },
+                    { valor: 'cirurgia', texto: 'de 180 dias, próprio de cirurgias eletivas,' }
+                ], padrao: '' } },
+                ' fixado pelo Enunciado n.º 93 do FONAJUS.'
+            ] },
+            { id: 'p2', estilo: 'corpo', partes: [
+                'Ante o exposto, JULGO PROCEDENTE o pedido, ',
+                { escolha: { campo: 'temTutela', casos: [
+                    { valor: true, texto: 'e **CONFIRMO A TUTELA**, ' }
+                ], padrao: '' } },
+                'para CONDENAR o réu.'
+            ] }
+        ]
+    };
+    const texto = doc => doc.paragrafos.map(p => p.runs.map(r => r.texto).join('')).join('\n');
+
+    const semTutela = Montagem.montarDocumento(modelo, { tipoTeto: 'consulta', temTutela: false });
+    Testes.igual(texto(semTutela),
+        'Superando o teto de 100 dias, próprio de consultas e exames, fixado pelo Enunciado n.º 93 do FONAJUS.\n' +
+        'Ante o exposto, JULGO PROCEDENTE o pedido, para CONDENAR o réu.',
+        'escolha inline (consulta, sem tutela) não montou como esperado');
+
+    const comTutela = Montagem.montarDocumento(modelo, { tipoTeto: 'cirurgia', temTutela: true });
+    Testes.igual(texto(comTutela),
+        'Superando o teto de 180 dias, próprio de cirurgias eletivas, fixado pelo Enunciado n.º 93 do FONAJUS.\n' +
+        'Ante o exposto, JULGO PROCEDENTE o pedido, e CONFIRMO A TUTELA, para CONDENAR o réu.',
+        'escolha inline (cirurgia, com tutela) não montou como esperado');
+
+    const p2runs = comTutela.paragrafos[1].runs;
+    Testes.ok(p2runs.some(r => r.negrito && r.texto === 'CONFIRMO A TUTELA'),
+              'negrito dentro de uma parte inline não foi aplicado');
 });
 
 /* --- Igualdade textual: prévia × docx --------------------------------------- */
