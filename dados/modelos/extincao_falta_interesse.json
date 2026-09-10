@@ -1,0 +1,168 @@
+{
+  "_nota": "Convertido de ~/Documentos/GitHub/Gerador de Sentencas/MODELO_SENTENCA_EXTINCAO_ROTA_C.html em 2026-09-10. Texto transcrito literalmente. Cinco sub-hipóteses (data-grupo=causa no original) viraram uma escolha de 5 vias sobre o campo 'causa', usada duas vezes (fundamentação e dispositivo) — sem precisar de partes, porque cada bloco já era um parágrafo inteiro no HTML original.",
+  "_clausulaDeEspera": "O HTML original avisa: quando o agendamento completo sobrevém DEPOIS da citação, não é caso de extinção imediata (cláusula do art. 493 do CPC) — é despacho de espera, não esta sentença. Registrado em triagem.excluir; não modelado aqui porque despacho de espera é outro tipo de peça, fora do escopo desta conversão.",
+
+  "esquema": 1,
+  "id": "extincao_falta_interesse",
+  "versao": "1.0.0",
+  "oficial": true,
+
+  "metadados": {
+    "titulo": "Sentença de Extinção sem Resolução do Mérito — Falta de Interesse Processual",
+    "tipoPeca": "sentenca",
+    "orgao": "3jefp_df",
+    "tema": "saude_procedimento",
+    "classesAplicaveis": ["PROCJEF"],
+    "atualizadoEm": "2026-09-10",
+    "curador": "Gabinete"
+  },
+
+  "aplicabilidade": [
+    "Não houve concessão de tutela de urgência neste feito (ou, havendo, o cumprimento não decorreu dela).",
+    "O interesse de agir não subsiste — pedido já atendido administrativamente antes do ajuizamento, ausência da parte ao agendamento, falecimento da parte autora, ou desistência da ação."
+  ],
+
+  "triagem": {
+    "excluir": [
+      "Houve tutela de urgência concedida e o cumprimento decorreu dela — usar o modelo de confirmação de tutela cumprida.",
+      "O agendamento completo sobreveio DEPOIS da citação — não é extinção imediata; cabe despacho de espera (cláusula do art. 493 do CPC), não este modelo.",
+      "Feito em fase de cumprimento de sentença, com obrigação satisfeita — usar o modelo de extinção do cumprimento pela satisfação (Rota D)."
+    ]
+  },
+
+  "campos": [
+    { "id": "numero_processo", "tipo": "processo", "rotulo": "Número do processo (CNJ)",
+      "ajuda": "Número único do processo no formato CNJ, usado na identificação da peça e no cabeçalho da minuta.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "autor_nome", "tipo": "parte", "rotulo": "Nome da parte autora",
+      "ajuda": "Nome completo da pessoa que ajuizou a ação; aparece no cabeçalho e no relatório.",
+      "obrigatorio": true, "sensivel": true },
+
+    { "id": "objeto", "tipo": "texto", "rotulo": "Objeto da prestação de saúde",
+      "ajuda": "Descreva como substantivo simples (ex.: \"exame de ressonância magnética\"), sem artigo inicial — o texto do modelo já traz \"para obter\" antes do campo.",
+      "obrigatorio": true, "sensivel": true },
+
+    { "id": "numero_solicitacao", "tipo": "texto", "rotulo": "Número da solicitação no SISREG",
+      "ajuda": "Identificador da solicitação na regulação (SISREG III), citado no relatório e, se a causa envolver agendamento, também na fundamentação.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "cor_risco", "tipo": "selecao", "rotulo": "Classificação de risco",
+      "ajuda": "Cor atribuída pela regulação conforme a gravidade clínica, citada no relatório.",
+      "obrigatorio": true, "sensivel": false,
+      "opcoes": [
+        { "valor": "vermelho", "rotulo": "Vermelho — prioridade 0" },
+        { "valor": "amarelo",  "rotulo": "Amarelo — prioridade 1" },
+        { "valor": "verde",    "rotulo": "Verde — prioridade 2" },
+        { "valor": "azul",     "rotulo": "Azul — prioridade 3" }
+      ] },
+
+    { "id": "causa", "tipo": "selecao", "rotulo": "Causa da extinção",
+      "ajuda": "Define qual dos cinco parágrafos de fundamentação e qual fundamento legal do dispositivo (art. 485, VI/VIII/IX do CPC) entram na peça.",
+      "obrigatorio": true, "sensivel": false,
+      "opcoes": [
+        { "valor": "agendado-antes", "rotulo": "Agendamento anterior ao ajuizamento" },
+        { "valor": "falta", "rotulo": "Agendado e não realizado por falta do paciente" },
+        { "valor": "executado", "rotulo": "Já executado antes do ajuizamento" },
+        { "valor": "obito", "rotulo": "Falecimento da parte autora" },
+        { "valor": "desistencia", "rotulo": "Desistência da ação" }
+      ] },
+
+    { "id": "data_agendamento", "tipo": "data", "rotulo": "Data do agendamento",
+      "ajuda": "Data para a qual o procedimento foi marcado; usada nas causas de agendamento anterior e de falta do paciente.",
+      "obrigatorio": false, "sensivel": false,
+      "mostrarQuando": { "campo": "causa", "umDe": ["agendado-antes", "falta"] } },
+
+    { "id": "hora_agendamento", "tipo": "texto", "rotulo": "Hora do agendamento",
+      "ajuda": "Horário para o qual o procedimento foi marcado; usado só na causa de agendamento anterior ao ajuizamento.",
+      "obrigatorio": false, "sensivel": false,
+      "mostrarQuando": { "campo": "causa", "igual": "agendado-antes" } },
+
+    { "id": "unidade_executante", "tipo": "texto", "rotulo": "Unidade executante",
+      "ajuda": "Nome da unidade de saúde onde o procedimento foi ou seria realizado; usada nas causas de agendamento anterior e de falta do paciente.",
+      "obrigatorio": false, "sensivel": false,
+      "mostrarQuando": { "campo": "causa", "umDe": ["agendado-antes", "falta"] } },
+
+    { "id": "profissional_executante", "tipo": "texto", "rotulo": "Profissional executante",
+      "ajuda": "Nome do profissional responsável pelo procedimento agendado; usado só na causa de agendamento anterior ao ajuizamento.",
+      "obrigatorio": false, "sensivel": false,
+      "mostrarQuando": { "campo": "causa", "igual": "agendado-antes" } },
+
+    { "id": "chave_confirmacao", "tipo": "texto", "rotulo": "Chave de confirmação do agendamento",
+      "ajuda": "Código de confirmação do agendamento no sistema da regulação; usado só na causa de agendamento anterior ao ajuizamento.",
+      "obrigatorio": false, "sensivel": false,
+      "mostrarQuando": { "campo": "causa", "igual": "agendado-antes" } },
+
+    { "id": "data_ajuizamento", "tipo": "data", "rotulo": "Data do ajuizamento",
+      "ajuda": "Data em que a ação foi proposta; comparada com a data de agendamento para mostrar que o agendamento é anterior.",
+      "obrigatorio": false, "sensivel": false,
+      "mostrarQuando": { "campo": "causa", "igual": "agendado-antes" } },
+
+    { "id": "id_extrato", "tipo": "texto", "rotulo": "Id. do extrato do SISREG",
+      "ajuda": "Identificador do documento no PJe que comprova o agendamento ou a execução; usado nas causas de agendamento anterior, falta e já executado.",
+      "obrigatorio": false, "sensivel": false,
+      "mostrarQuando": { "campo": "causa", "umDe": ["agendado-antes", "falta", "executado"] } },
+
+    { "id": "id_certidao_obito", "tipo": "texto", "rotulo": "Id. da certidão de óbito",
+      "ajuda": "Identificador do documento no PJe referente à certidão de óbito da parte autora; usado só na causa de falecimento.",
+      "obrigatorio": false, "sensivel": true,
+      "mostrarQuando": { "campo": "causa", "igual": "obito" } },
+
+    { "id": "id_desistencia", "tipo": "texto", "rotulo": "Id. do pedido de desistência",
+      "ajuda": "Identificador do documento no PJe em que a parte autora manifestou desistência da ação; usado só na causa de desistência.",
+      "obrigatorio": false, "sensivel": false,
+      "mostrarQuando": { "campo": "causa", "igual": "desistencia" } },
+
+    { "id": "id_mp", "tipo": "texto", "rotulo": "Id. da manifestação do Ministério Público",
+      "ajuda": "Identificador do documento no PJe referente à manifestação do Ministério Público, citado antes do dispositivo.",
+      "obrigatorio": true, "sensivel": false }
+  ],
+
+  "corpo": [
+    { "id": "processo_linha", "estilo": "autuacao", "texto": "Processo n.º: {{numero_processo}}" },
+    { "id": "autor_linha", "estilo": "autuacao", "texto": "Autor: {{autor_nome}}" },
+    { "id": "vistos", "estilo": "vistos", "texto": "Vistos etc." },
+
+    { "id": "sec_relatorio", "estilo": "secao", "texto": "I. RELATÓRIO" },
+    { "id": "relatorio_1", "estilo": "corpo",
+      "texto": "Relatório dispensado, na forma do @ref:lei9099_38 c/c @ref:lei12153_27. Registra-se, para contextualização, que {{autor_nome}} ajuizou ação de obrigação de fazer para obter {{objeto}}, solicitação n.º {{numero_solicitacao}} (classificação de risco {{cor_risco}}). Não houve concessão de tutela de urgência neste feito." },
+
+    { "id": "sec_fundamentacao", "estilo": "secao", "texto": "II. FUNDAMENTAÇÃO" },
+    { "id": "fund_1", "estilo": "corpo",
+      "texto": "O interesse de agir exige a necessidade concreta de recorrer ao Judiciário (@ref:cpc_17). O Supremo Tribunal Federal, no @ref:stf_tema350, assentou que, acolhido o pedido administrativamente ou não subsistindo necessidade de tutela jurisdicional, extingue-se a ação." },
+
+    { "id": "causa_fund", "estilo": "corpo", "escolha": { "campo": "causa", "casos": [
+        { "valor": "agendado-antes", "texto": "No caso, o procedimento pedido já estava agendado ao tempo da propositura: a solicitação n.º {{numero_solicitacao}} foi marcada para {{data_agendamento|dataExtenso}}, às {{hora_agendamento}}, na unidade {{unidade_executante}}, com o profissional {{profissional_executante}} (chave n.º {{chave_confirmacao}}), conforme o extrato de Id. {{id_extrato}}. Como o agendamento é anterior ao ajuizamento ({{data_ajuizamento|dataExtenso}}), não havia pretensão resistida a justificar a demanda. A informação de agendamento é ato administrativo dotado de presunção relativa de veracidade e legitimidade, cujo ônus de infirmar competia à parte autora, dele não se desincumbindo." },
+        { "valor": "falta", "texto": "No caso, o procedimento pedido foi disponibilizado pela rede e agendado para {{data_agendamento|dataExtenso}}, na unidade {{unidade_executante}}, mas não se realizou por falta do paciente (não comparecimento), conforme o extrato de Id. {{id_extrato}}. O não comparecimento é fato imputável à parte, e não omissão do Distrito Federal, de modo que não se configura a hipótese de omissão estatal que autorizaria a tutela jurisdicional." },
+        { "valor": "executado", "texto": "No caso, o procedimento pedido já havia sido executado antes do ajuizamento, conforme o extrato de Id. {{id_extrato}}, de modo que a pretensão de obtê-lo carece de necessidade — o bem da vida já foi entregue pela via administrativa." },
+        { "valor": "obito", "texto": "No caso, sobreveio o falecimento da parte autora (certidão de Id. {{id_certidao_obito}}). Tratando-se de obrigação de fazer de natureza personalíssima — prestação de saúde em favor do próprio autor —, o objeto do processo não se transmite, impondo-se a extinção." },
+        { "valor": "desistencia", "texto": "No caso, a parte autora manifestou desistência da ação (Id. {{id_desistencia}}), a ser homologada." }
+      ], "padrao": null } },
+
+    { "id": "mp_manifestacao", "estilo": "corpo",
+      "texto": "O Ministério Público do Distrito Federal e Territórios manifestou-se (Id. {{id_mp}}), sem que o seu parecer altere a ausência de interesse ora reconhecida." },
+
+    { "id": "sec_dispositivo", "estilo": "secao", "texto": "III. DISPOSITIVO" },
+
+    { "id": "causa_disp", "estilo": "corpo", "escolha": { "campo": "causa", "casos": [
+        { "valor": "agendado-antes", "texto": "Ante o exposto, **JULGO EXTINTO O PROCESSO, SEM RESOLUÇÃO DO MÉRITO**, por ausência de interesse processual, com fundamento no @ref:cpc_485_vi." },
+        { "valor": "falta", "texto": "Ante o exposto, **JULGO EXTINTO O PROCESSO, SEM RESOLUÇÃO DO MÉRITO**, por ausência de interesse processual, com fundamento no @ref:cpc_485_vi." },
+        { "valor": "executado", "texto": "Ante o exposto, **JULGO EXTINTO O PROCESSO, SEM RESOLUÇÃO DO MÉRITO**, por ausência de interesse processual, com fundamento no @ref:cpc_485_vi." },
+        { "valor": "obito", "texto": "Ante o exposto, **JULGO EXTINTO O PROCESSO, SEM RESOLUÇÃO DO MÉRITO**, com fundamento no @ref:cpc_485_ix." },
+        { "valor": "desistencia", "texto": "Ante o exposto, **HOMOLOGO A DESISTÊNCIA** e **JULGO EXTINTO O PROCESSO, SEM RESOLUÇÃO DO MÉRITO**, com fundamento no @ref:cpc_485_viii." }
+      ], "padrao": null } },
+
+    { "id": "ressalva", "estilo": "corpo",
+      "texto": "Fica ressalvada a propositura de nova demanda, com pedido de tutela de urgência, na forma do @ref:cpc_486, caso sobrevenha necessidade não atendida pela via administrativa." },
+
+    { "id": "custas", "estilo": "corpo",
+      "texto": "Sem custas e sem honorários advocatícios (@ref:lei9099_55 c/c @ref:lei12153_27)." },
+
+    { "id": "sec_comandos", "estilo": "secao", "texto": "IV. COMANDOS CARTORÁRIOS" },
+    { "id": "comandos", "tipo": "grupoAlineas", "filhos": [
+      { "id": "intimacao", "estilo": "alinea", "texto": "{{@alinea:intimacao}}) intimem-se as partes;" },
+      { "id": "mp", "estilo": "alinea", "texto": "{{@alinea:mp}}) dê-se ciência ao Ministério Público do Distrito Federal e Territórios — PROSUS;" },
+      { "id": "transito", "estilo": "alinea", "texto": "{{@alinea:transito}}) certificado o trânsito em julgado, procedam-se à baixa e ao arquivamento." }
+    ] }
+  ]
+}

@@ -1177,6 +1177,31 @@ const Testes = {
         return Object.assign({}, base, porCor[cor]);
     },
 
+    /* Valores de exemplo para o terceiro modelo real da curadoria
+       (extincao_falta_interesse) — uma variante por causa. */
+    valoresRotaC(causa) {
+        const base = {
+            numero_processo: '0700002-22.2026.8.07.0016',
+            autor_nome: 'Ciclana Pereira',
+            objeto: 'consulta com cardiologista',
+            numero_solicitacao: '789012',
+            cor_risco: 'verde',
+            causa: causa,
+            id_mp: '99999999'
+        };
+        const porCausa = {
+            'agendado-antes': { data_agendamento: '2026-02-01', hora_agendamento: '09h30',
+                unidade_executante: 'UBS 2 de Taguatinga', profissional_executante: 'Dr. João Nunes',
+                chave_confirmacao: 'ABC123', data_ajuizamento: '2026-03-01', id_extrato: '10101010' },
+            'falta': { data_agendamento: '2026-02-10', unidade_executante: 'Hospital Regional de Ceilândia',
+                id_extrato: '20202020' },
+            'executado': { id_extrato: '30303030' },
+            'obito': { id_certidao_obito: '40404040' },
+            'desistencia': { id_desistencia: '50505050' }
+        };
+        return Object.assign({}, base, porCausa[causa]);
+    },
+
     /* Extrai o texto visível de um word/document.xml já montado, para
        conferir contra Previa.textoPlano(doc) — as duas trilhas do mesmo IR. */
     textoDoXml(xml) {
@@ -1517,6 +1542,47 @@ Testes.def('Rota B — modelo real gera peça coerente', () => {
                   'alínea "d" não numerou como esperado (' + variante + ')');
         Testes.ok(texto.indexOf('art. 12 da Lei nº 12.153/2009') >= 0,
                   'referência lei12153_12 não resolveu (' + variante + ')');
+    });
+});
+
+/* --- Modelo real: extincao_falta_interesse (Rota C) ------------------------ */
+
+['agendado-antes', 'falta', 'executado', 'obito', 'desistencia'].forEach(causa => {
+    Testes.def('Rota C — modelo real gera peça coerente (' + causa + ')', () => {
+        const modelo = MODELOS.find(m => m.id === 'extincao_falta_interesse');
+        Testes.ok(modelo, 'modelo "extincao_falta_interesse" não está em MODELOS — rode npm run build antes');
+        if (!modelo) return;
+
+        const doc = Montagem.montarDocumento(modelo, Testes.valoresRotaC(causa), Testes.opcoesExemplo());
+        const texto = Previa.textoPlano(doc);
+
+        Testes.igual(Testes.textoDoXml(Ooxml.documento(doc)), texto,
+                     'divergência entre prévia e .docx na Rota C (' + causa + ')');
+        Testes.ok(texto.indexOf('{{') < 0, 'sobrou placeholder {{...}} não resolvido (' + causa + ')');
+
+        const fundamentoEsperado = {
+            'agendado-antes': 'já estava agendado ao tempo da propositura',
+            'falta': 'não se realizou por falta do paciente',
+            'executado': 'já havia sido executado antes do ajuizamento',
+            'obito': 'sobreveio o falecimento da parte autora',
+            'desistencia': 'manifestou desistência da ação'
+        };
+        Testes.ok(texto.indexOf(fundamentoEsperado[causa]) >= 0,
+                  'fundamentação da causa "' + causa + '" não apareceu no texto');
+
+        const artigoEsperado = { 'agendado-antes': 'art. 485, VI, do CPC', 'falta': 'art. 485, VI, do CPC',
+            'executado': 'art. 485, VI, do CPC', 'obito': 'art. 485, IX, do CPC', 'desistencia': 'art. 485, VIII, do CPC' };
+        Testes.ok(texto.indexOf(artigoEsperado[causa]) >= 0,
+                  'fundamento legal da causa "' + causa + '" não resolveu (' + causa + ')');
+
+        if (causa === 'desistencia') {
+            Testes.ok(texto.indexOf('HOMOLOGO A DESISTÊNCIA') >= 0, 'desistência deveria ser homologada no dispositivo');
+        }
+
+        Testes.ok(texto.indexOf('a) intimem-se') >= 0, 'alínea "a" não numerou como esperado (' + causa + ')');
+        Testes.ok(texto.indexOf('b) dê-se ciência') >= 0, 'alínea "b" não numerou como esperado (' + causa + ')');
+        Testes.ok(texto.indexOf('c) certificado o trânsito em julgado, procedam-se') >= 0,
+                  'alínea "c" não numerou como esperado (' + causa + ')');
     });
 });
 
