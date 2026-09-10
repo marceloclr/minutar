@@ -1138,6 +1138,45 @@ const Testes = {
         };
     },
 
+    /* Valores de exemplo para o segundo modelo real da curadoria
+       (procedencia_mora_en93) — 4 variantes, uma por cor de risco,
+       alternando temTutela e tipo_teto para exercitar as duas escolhas
+       inline (partes) e a escolha de 4 vias em campos diferentes. */
+    valoresRotaA(variante) {
+        const base = {
+            numero_processo: '0700001-11.2026.8.07.0016',
+            autor_nome: 'Beltrano de Souza',
+            diagnostico: 'insuficiência renal crônica',
+            cid: 'N18',
+            objeto: 'consulta com nefrologista',
+            numero_solicitacao: '654321',
+            data_insercao: '2026-01-10',
+            id_extrato: '11111111',
+            id_contestacao: '22222222',
+            id_replica: '33333333',
+            posicao_mp: 'procedência do pedido',
+            id_mp: '44444444',
+            codigo_sigtap: '0301010064',
+            id_prescricao: '55555555',
+            data_ajuizamento: '2026-06-01',
+            dias_mora: '142',
+            tese_defesa: 'reserva do possível',
+            graduacao_mora: 'moderada'
+        };
+        const porCor = {
+            vermelho: { cor_risco: 'vermelho', prioridade: 0, temTutela: false, tipo_teto: 'consulta',
+                        id_tutela: '', data_tutela: '', prazo_dias: '30', prazo_extenso: 'trinta' },
+            amarelo:  { cor_risco: 'amarelo', prioridade: 1, temTutela: true, tipo_teto: 'cirurgia',
+                        id_tutela: '66666666', data_tutela: '2026-05-01', prazo_dias: '50', prazo_extenso: 'cinquenta' },
+            verde:    { cor_risco: 'verde', prioridade: 2, temTutela: false, tipo_teto: 'cirurgia',
+                        id_tutela: '', data_tutela: '', prazo_dias: '65', prazo_extenso: 'sessenta e cinco' },
+            azul:     { cor_risco: 'azul', prioridade: 3, temTutela: true, tipo_teto: 'consulta',
+                        id_tutela: '77777777', data_tutela: '2026-04-15', prazo_dias: '80', prazo_extenso: 'oitenta' }
+        };
+        const cor = { a: 'vermelho', b: 'amarelo', c: 'verde', d: 'azul' }[variante] || 'vermelho';
+        return Object.assign({}, base, porCor[cor]);
+    },
+
     /* Extrai o texto visível de um word/document.xml já montado, para
        conferir contra Previa.textoPlano(doc) — as duas trilhas do mesmo IR. */
     textoDoXml(xml) {
@@ -1420,6 +1459,65 @@ Testes.def('Rota B — modelo real gera peça coerente', () => {
     Testes.ok(texto.indexOf('c) certificado o trânsito') >= 0, 'alínea "c" não numerou como esperado');
     Testes.ok(texto.indexOf('art. 355, I, do CPC') >= 0, 'referência cpc_355_i não resolveu para o texto esperado');
     Testes.ok(texto.indexOf('per relationem') >= 0, 'trecho em itálico não apareceu no texto');
+});
+
+/* --- Modelo real: procedencia_mora_en93 (Rota A) --------------------------- */
+
+['a', 'b', 'c', 'd'].forEach(variante => {
+    Testes.def('Rota A — modelo real gera peça coerente (' + variante + ')', () => {
+        const modelo = MODELOS.find(m => m.id === 'procedencia_mora_en93');
+        Testes.ok(modelo, 'modelo "procedencia_mora_en93" não está em MODELOS — rode npm run build antes');
+        if (!modelo) return;
+
+        const valores = Testes.valoresRotaA(variante);
+        const doc = Montagem.montarDocumento(modelo, valores, Testes.opcoesExemplo());
+        const texto = Previa.textoPlano(doc);
+
+        Testes.igual(Testes.textoDoXml(Ooxml.documento(doc)), texto,
+                     'divergência entre prévia e .docx na Rota A (' + variante + ')');
+        Testes.ok(texto.indexOf('{{') < 0, 'sobrou placeholder {{...}} não resolvido (' + variante + ')');
+
+        const teto = valores.tipo_teto === 'consulta' ? 'de 100 dias, próprio de consultas e exames,'
+                                                        : 'de 180 dias, próprio de cirurgias eletivas,';
+        Testes.ok(texto.indexOf('superando o teto ' + teto) >= 0,
+                  'escolha inline do teto não resolveu para "' + valores.tipo_teto + '" (' + variante + ')');
+
+        if (valores.temTutela) {
+            Testes.ok(texto.indexOf('Houve concessão de tutela de urgência') >= 0,
+                      'parágrafo de tutela deveria estar presente (' + variante + ')');
+            Testes.ok(texto.indexOf('CONFIRMO A TUTELA DE URGÊNCIA') >= 0,
+                      'trecho inline de confirmação da tutela deveria estar presente (' + variante + ')');
+            Testes.ok(texto.indexOf('per relationem') >= 0,
+                      'parágrafo per relationem deveria estar presente (' + variante + ')');
+        } else {
+            Testes.ok(texto.indexOf('Não houve concessão de tutela de urgência') >= 0,
+                      'parágrafo de tutela deveria dizer "não houve" (' + variante + ')');
+            Testes.ok(texto.indexOf('CONFIRMO A TUTELA DE URGÊNCIA') < 0,
+                      'trecho inline de confirmação da tutela não deveria aparecer sem tutela (' + variante + ')');
+            Testes.ok(texto.indexOf('per relationem') < 0,
+                      'parágrafo per relationem não deveria aparecer sem tutela (' + variante + ')');
+        }
+
+        const rotulos = { vermelho: 'A classificação vermelha', amarelo: 'A classificação amarela',
+                           verde: 'A classificação verde', azul: 'A classificação azul' };
+        Testes.ok(texto.indexOf(rotulos[valores.cor_risco]) >= 0,
+                  'parágrafo de prazo da cor "' + valores.cor_risco + '" não apareceu (' + variante + ')');
+        Object.keys(rotulos).forEach(cor => {
+            if (cor !== valores.cor_risco) {
+                Testes.ok(texto.indexOf(rotulos[cor]) < 0,
+                          'parágrafo de prazo de outra cor ("' + cor + '") vazou para o texto (' + variante + ')');
+            }
+        });
+
+        Testes.ok(texto.indexOf('a) determino a intimação') >= 0, 'alínea "a" não numerou como esperado (' + variante + ')');
+        Testes.ok(texto.indexOf('b) dê-se vista imediata') >= 0, 'alínea "b" não numerou como esperado (' + variante + ')');
+        Testes.ok(texto.indexOf('c) certificado o trânsito em julgado e cumprida') >= 0,
+                  'alínea "c" não numerou como esperado (' + variante + ')');
+        Testes.ok(texto.indexOf('d) após o trânsito em julgado, oficie-se') >= 0,
+                  'alínea "d" não numerou como esperado (' + variante + ')');
+        Testes.ok(texto.indexOf('art. 12 da Lei nº 12.153/2009') >= 0,
+                  'referência lei12153_12 não resolveu (' + variante + ')');
+    });
 });
 
 /* ==========================================================================

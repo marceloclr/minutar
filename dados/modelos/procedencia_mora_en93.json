@@ -1,0 +1,243 @@
+{
+  "_nota": "Convertido de ~/Documentos/GitHub/Gerador de Sentencas/MODELO_SENTENCA_PROCEDENCIA_En93.html em 2026-09-10. Texto transcrito literalmente. Decisão do usuário: comandos 'c' e 'd' mantidos os dois (sobreposição de sentido preservada), só corrigida a pontuação de 'c' (ponto final -> ponto e vírgula). 'objeto' não usa filtro |sintetico nem inclui artigo — ver ajuda do campo.",
+  "_derivacaoNaoImplementada": "prioridade (a partir de cor_risco) e prazo_dias/prazo_extenso (a partir de cor_risco + graduacao_mora) são, na peça original, valores DERIVADOS por tabela — mas o motor ainda não tem um nó de tabela/derivação (só escolha/quando sobre valores digitados). Ficaram como campos digitados, com a tabela original inteira na ajuda, replicando exatamente como o assistente já preenchia o HTML estático. Promover para 'Derivado' de verdade é trabalho de fase posterior.",
+
+  "esquema": 1,
+  "id": "procedencia_mora_en93",
+  "versao": "1.0.0",
+  "oficial": true,
+
+  "metadados": {
+    "titulo": "Sentença de Procedência — Prazo por Classificação de Risco (Mora do Enunciado 93)",
+    "tipoPeca": "sentenca",
+    "orgao": "3jefp_df",
+    "tema": "saude_procedimento",
+    "classesAplicaveis": ["PROCJEF"],
+    "atualizadoEm": "2026-09-10",
+    "curador": "Gabinete"
+  },
+
+  "aplicabilidade": [
+    "Procedimento de saúde ainda pendente de realização.",
+    "Mora do Enunciado n.º 93 do FONAJUS configurada — teto de 100 dias (consulta/exame) ou 180 dias (cirurgia eletiva) superado entre a inserção no SISREG e o ajuizamento."
+  ],
+
+  "triagem": {
+    "excluir": [
+      "Processo oncológico — o parâmetro temporal correto é o da Lei nº 12.732/2012, não o do Enunciado 93.",
+      "Tutela de urgência já concedida e já cumprida (procedimento realizado) — usar o modelo de confirmação de tutela cumprida.",
+      "Não houve mora (procedimento ainda dentro do teto do Enunciado 93) ou o agendamento já ocorreu antes do ajuizamento — usar o modelo de extinção por perda de objeto."
+    ]
+  },
+
+  "campos": [
+    { "id": "numero_processo", "tipo": "processo", "rotulo": "Número do processo (CNJ)",
+      "ajuda": "Número único do processo no formato CNJ, usado na identificação da peça e no cabeçalho da minuta.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "autor_nome", "tipo": "parte", "rotulo": "Nome da parte autora",
+      "ajuda": "Nome completo da pessoa que ajuizou a ação; aparece no cabeçalho e no comando de providenciar o procedimento.",
+      "obrigatorio": true, "sensivel": true },
+
+    { "id": "diagnostico", "tipo": "texto", "rotulo": "Diagnóstico",
+      "ajuda": "Diagnóstico ou condição clínica da parte autora, citado no relatório junto com o CID.",
+      "obrigatorio": true, "sensivel": true },
+
+    { "id": "cid", "tipo": "texto", "rotulo": "CID",
+      "ajuda": "Código da Classificação Internacional de Doenças correspondente ao diagnóstico, citado no relatório.",
+      "obrigatorio": true, "sensivel": true },
+
+    { "id": "objeto", "tipo": "texto", "rotulo": "Objeto da prestação de saúde",
+      "ajuda": "Descreva como substantivo simples (ex.: \"exame de ressonância magnética\"), sem artigo inicial nem \"a realização de\" — o texto do modelo já traz isso antes do campo em todos os lugares onde é usado.",
+      "obrigatorio": true, "sensivel": true },
+
+    { "id": "numero_solicitacao", "tipo": "texto", "rotulo": "Número da solicitação no SISREG",
+      "ajuda": "Identificador da solicitação na regulação (SISREG III), citado no relatório e no comando de providenciar.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "data_insercao", "tipo": "data", "rotulo": "Data de inserção no SISREG",
+      "ajuda": "Data em que a solicitação foi inserida no SISREG III; ponto de partida da contagem da mora administrativa.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "cor_risco", "tipo": "selecao", "rotulo": "Classificação de risco",
+      "ajuda": "Cor atribuída pela regulação conforme a gravidade clínica; define qual dos quatro prazos do dispositivo se aplica.",
+      "obrigatorio": true, "sensivel": false,
+      "opcoes": [
+        { "valor": "vermelho", "rotulo": "Vermelho — prioridade 0" },
+        { "valor": "amarelo",  "rotulo": "Amarelo — prioridade 1" },
+        { "valor": "verde",    "rotulo": "Verde — prioridade 2" },
+        { "valor": "azul",     "rotulo": "Azul — prioridade 3" }
+      ] },
+
+    { "id": "prioridade", "tipo": "numero", "rotulo": "Prioridade numérica", "minimo": 0, "maximo": 3,
+      "ajuda": "Número correspondente à classificação de risco: 0 = vermelho, 1 = amarelo, 2 = verde, 3 = azul. Deve bater com o campo de cor.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "id_extrato", "tipo": "texto", "rotulo": "Id. do extrato do SISREG",
+      "ajuda": "Identificador do documento no PJe que comprova os dados da solicitação (data, cor de risco), citado no relatório.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "temTutela", "tipo": "booleano", "rotulo": "Houve concessão de tutela de urgência?",
+      "ajuda": "Define se o relatório, a fundamentação (per relationem) e o dispositivo mencionam a tutela já concedida neste feito.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "id_tutela", "tipo": "texto", "rotulo": "Id. da decisão que concedeu a tutela",
+      "ajuda": "Identificador do documento no PJe referente à decisão que concedeu a tutela, citado como referência processual.",
+      "obrigatorio": false, "sensivel": false,
+      "mostrarQuando": { "campo": "temTutela", "igual": true } },
+
+    { "id": "data_tutela", "tipo": "data", "rotulo": "Data da concessão da tutela",
+      "ajuda": "Data em que a tutela de urgência foi deferida; aparece por extenso no relatório e na fundamentação per relationem.",
+      "obrigatorio": false, "sensivel": false,
+      "mostrarQuando": { "campo": "temTutela", "igual": true } },
+
+    { "id": "id_contestacao", "tipo": "texto", "rotulo": "Id. da contestação",
+      "ajuda": "Identificador do documento no PJe referente à contestação apresentada pelo Distrito Federal, citado no relatório.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "id_replica", "tipo": "texto", "rotulo": "Id. da réplica",
+      "ajuda": "Identificador do documento no PJe referente à réplica apresentada pela parte autora, citado no relatório.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "posicao_mp", "tipo": "texto", "rotulo": "Posição do Ministério Público",
+      "ajuda": "Frase curta descrevendo pelo que o MP se manifestou (ex.: \"procedência do pedido\"), inserida diretamente no relatório.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "id_mp", "tipo": "texto", "rotulo": "Id. do parecer do Ministério Público",
+      "ajuda": "Identificador do documento no PJe referente à manifestação do Ministério Público, citado no relatório.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "codigo_sigtap", "tipo": "texto", "rotulo": "Código SIGTAP",
+      "ajuda": "Código do procedimento na tabela SIGTAP do SUS, citado na fundamentação para comprovar a incorporação ao sistema.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "id_prescricao", "tipo": "texto", "rotulo": "Id. da prescrição médica",
+      "ajuda": "Identificador do documento no PJe referente à prescrição médica que ampara o pedido, citado na fundamentação.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "data_ajuizamento", "tipo": "data", "rotulo": "Data do ajuizamento",
+      "ajuda": "Data em que a ação foi proposta; usada com a data de inserção no SISREG para calcular a mora administrativa.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "dias_mora", "tipo": "numero", "rotulo": "Dias de mora",
+      "ajuda": "Número de dias corridos entre a inserção no SISREG e o ajuizamento, citado na fundamentação da mora.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "tese_defesa", "tipo": "texto", "rotulo": "Tese da defesa",
+      "ajuda": "Resumo curto do que o Distrito Federal alegou na contestação, citado na fundamentação para ser afastado.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "tipo_teto", "tipo": "selecao", "rotulo": "Teto do Enunciado 93 aplicável",
+      "ajuda": "Se o objeto pedido é consulta/exame (teto de 100 dias) ou cirurgia eletiva (teto de 180 dias); define o texto sobre a superação do teto na fundamentação da mora.",
+      "obrigatorio": true, "sensivel": false,
+      "opcoes": [
+        { "valor": "consulta", "rotulo": "Consulta ou exame — teto de 100 dias" },
+        { "valor": "cirurgia", "rotulo": "Cirurgia eletiva — teto de 180 dias" }
+      ] },
+
+    { "id": "graduacao_mora", "tipo": "selecao", "rotulo": "Graduação da mora",
+      "ajuda": "Graduação entre a inserção no SISREG e o ajuizamento: leve = teto do Enunciado 93 recém-superado; moderada = mais de 125 dias (consulta/exame) ou 225 (cirurgia); severa = mais de 150 ou 270; extrema = mais do dobro do teto (mais de 200 ou 360).",
+      "obrigatorio": true, "sensivel": false,
+      "opcoes": [
+        { "valor": "leve", "rotulo": "Leve" },
+        { "valor": "moderada", "rotulo": "Moderada" },
+        { "valor": "severa", "rotulo": "Severa" },
+        { "valor": "extrema", "rotulo": "Extrema" }
+      ] },
+
+    { "id": "prazo_dias", "tipo": "numero", "rotulo": "Prazo em dias",
+      "ajuda": "Conforme a cor de risco e a graduação da mora. Vermelho: fixo em 30. Amarelo: extrema/severa=45, moderada=50, leve=55. Verde: extrema/severa=60, moderada=65, leve=70. Azul: extrema/severa=75, moderada=80, leve=85 (ou 90 em caso limítrofe, teto absoluto).",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "prazo_extenso", "tipo": "texto", "rotulo": "Prazo por extenso",
+      "ajuda": "O mesmo prazo de prazo_dias escrito por extenso entre parênteses no dispositivo (ex.: \"quarenta e cinco\").",
+      "obrigatorio": true, "sensivel": false }
+  ],
+
+  "corpo": [
+    { "id": "processo_linha", "estilo": "autuacao", "texto": "Processo n.º: {{numero_processo}}" },
+    { "id": "autor_linha", "estilo": "autuacao", "texto": "Autor: {{autor_nome}}" },
+    { "id": "vistos", "estilo": "vistos", "texto": "Vistos etc." },
+
+    { "id": "sec_relatorio", "estilo": "secao", "texto": "I. RELATÓRIO" },
+    { "id": "relatorio_1", "estilo": "corpo",
+      "texto": "Relatório dispensado, na forma do @ref:lei9099_38 c/c @ref:lei12153_27. Registra-se, para contextualização, que a parte autora, portadora de {{diagnostico}} (CID {{cid}}), pede a condenação do Distrito Federal a providenciar {{objeto}}, objeto da solicitação n.º {{numero_solicitacao}}, inserida no SISREG III em {{data_insercao|dataExtenso}}, com classificação de risco {{cor_risco}} (prioridade {{prioridade}}), conforme extrato de Id. {{id_extrato}}." },
+
+    { "id": "tutela", "estilo": "corpo", "escolha": { "campo": "temTutela",
+      "casos": [ { "valor": true, "texto": "Houve concessão de tutela de urgência neste feito (decisão de Id. {{id_tutela}}, de {{data_tutela|dataExtenso}})." } ],
+      "padrao": "Não houve concessão de tutela de urgência neste feito." } },
+
+    { "id": "relatorio_2", "estilo": "corpo",
+      "texto": "Citado, o Distrito Federal apresentou contestação (Id. {{id_contestacao}}). Houve réplica (Id. {{id_replica}}). O Ministério Público do Distrito Federal e Territórios manifestou-se pela {{posicao_mp}} (Id. {{id_mp}})." },
+
+    { "id": "sec_fundamentacao", "estilo": "secao", "texto": "II. FUNDAMENTAÇÃO" },
+    { "id": "fund_1", "estilo": "corpo",
+      "texto": "O feito comporta julgamento antecipado do mérito (@ref:cpc_355_i): a controvérsia é de direito e os fatos relevantes estão comprovados por documentos." },
+    { "id": "fund_2", "estilo": "corpo",
+      "texto": "O procedimento pedido está incorporado ao SUS sob o código SIGTAP {{codigo_sigtap}} e a prescrição médica de Id. {{id_prescricao}} permanece válida e atual. O dever de prestação decorre do @ref:cf_196 e dos @ref:lei8080_6_7, respondendo o Distrito Federal por força da solidariedade dos entes (@ref:stf_tema793) e do domicílio sanitário da parte autora." },
+
+    { "id": "fund_3", "estilo": "corpo", "partes": [
+      "A solicitação foi inserida no SISREG III em {{data_insercao|dataExtenso}}. Até o ajuizamento, em {{data_ajuizamento|dataExtenso}}, decorreram {{dias_mora}} dias, superando o teto ",
+      { "escolha": { "campo": "tipo_teto", "casos": [
+          { "valor": "consulta", "texto": "de 100 dias, próprio de consultas e exames," },
+          { "valor": "cirurgia", "texto": "de 180 dias, próprio de cirurgias eletivas," }
+        ], "padrao": "" } },
+      " fixado pelo Enunciado n.º 93 do FONAJUS. A mora administrativa está configurada e não foi justificada por fato concreto nos autos, limitando-se a defesa a invocar {{tese_defesa}}, sem indicar data-alvo para a execução."
+    ] },
+
+    { "id": "fund_4", "estilo": "corpo",
+      "texto": "O prazo de cumprimento é fixado pelo binômio classificação de risco e tempo de espera. O critério acolhe, por identidade de razão, o Enunciado n.º 92 do FONAJUS, que manda considerar não apenas o caráter urgente ou eletivo do procedimento, mas o conjunto da condição clínica do demandante e as repercussões negativas do longo tempo de espera. A mora é medida da data da inserção da solicitação no sistema de regulação até a data do ajuizamento." },
+
+    { "id": "prazo", "estilo": "corpo", "escolha": { "campo": "cor_risco", "casos": [
+        { "valor": "vermelho", "texto": "A classificação vermelha (prioridade 0) indica risco de dano grave e imediato, e a superação do teto do Enunciado n.º 93 soma à condição clínica a omissão consolidada do fluxo regulatório. Fixa-se o prazo mínimo da escala deste Juízo: 30 (trinta) dias." },
+        { "valor": "amarelo", "texto": "A classificação amarela (prioridade 1) indica dor ou disfunção severa, sem risco imediato de morte. Conjugada à mora {{graduacao_mora}}, impõe resposta célere que, todavia, preserve as vagas destinadas às prioridades absolutas. Fixa-se o prazo de {{prazo_dias}} ({{prazo_extenso}}) dias." },
+        { "valor": "verde", "texto": "A classificação verde (prioridade 2) indica prejuízo funcional leve, sem urgência clínica. A superação do teto do Enunciado n.º 93 configura, aqui, falha de gestão da fila, e não risco atual à saúde, de modo que o prazo comporta dilação compatível com a programação eletiva da rede, graduada pela mora {{graduacao_mora}}. Fixa-se o prazo de {{prazo_dias}} ({{prazo_extenso}}) dias." },
+        { "valor": "azul", "texto": "A classificação azul (prioridade 3) indica quadro de baixo impacto funcional. A condenação corrige o descontrole da fila sem competir com as prioridades clínicas superiores, graduado o prazo pela mora {{graduacao_mora}}. Fixa-se o prazo de {{prazo_dias}} ({{prazo_extenso}}) dias." }
+      ], "padrao": null } },
+
+    { "id": "fund_5", "estilo": "corpo",
+      "texto": "O prazo assim calibrado garante a entrega do bem da vida na exata proporção do risco clínico e da inefetividade administrativa demonstrados, sem desorganizar a regulação assistencial nem preterir pacientes em situação mais grave." },
+
+    { "id": "perrelationem", "estilo": "corpo", "quando": { "campo": "temTutela", "igual": true },
+      "texto": "Os fundamentos da decisão concessiva da tutela de urgência (Id. {{id_tutela}}, de {{data_tutela|dataExtenso}}) ficam expressamente incorporados a esta sentença, por remissão (fundamentação __per relationem__), acrescidos do que sobreveio à instrução." },
+
+    { "id": "sec_dispositivo", "estilo": "secao", "texto": "III. DISPOSITIVO" },
+
+    { "id": "disp_1", "estilo": "corpo", "partes": [
+      "Ante o exposto, **JULGO PROCEDENTE** o pedido, com resolução do mérito (@ref:cpc_487_i), ",
+      { "escolha": { "campo": "temTutela", "casos": [
+          { "valor": true, "texto": "e **CONFIRMO A TUTELA DE URGÊNCIA** de Id. {{id_tutela}}, " }
+        ], "padrao": "" } },
+      "para **CONDENAR** o **DISTRITO FEDERAL** a:"
+    ] },
+
+    { "id": "disp_2", "estilo": "corpo",
+      "texto": "**1. PROVIDENCIAR** o agendamento e a efetiva realização de {{objeto}}, solicitação n.º {{numero_solicitacao}}, em favor de {{autor_nome}}, conforme a prescrição médica, no prazo improrrogável de **{{prazo_dias}} ({{prazo_extenso}}) dias**, na rede pública própria ou contratada, mantida a classificação de risco e a linha de cuidado subsequente, comunicando-se a parte autora com antecedência mínima de 48 horas da data, do horário e do local;" },
+
+    { "id": "regra_ouro", "estilo": "corpo",
+      "texto": "__O prazo fixado é contado em dias corridos, da intimação da autoridade, e compreende a integralidade do ciclo assistencial, considerando-se cumprida a obrigação com a efetiva realização da prestação — e não com o mero agendamento.__" },
+
+    { "id": "disp_3", "estilo": "corpo",
+      "texto": "**2. CUSTEAR** a prestação na rede privada, comprovada pela Central de Regulação, mediante certidão técnica, a impossibilidade de realização na rede pública (Enunciado n.º 137), limitado o custeio ao Índice de Valoração de Ressarcimento, na forma da Resolução Normativa ANS n.º 251/2011 e do Tema 1.033 do STF, declarada a nulidade de tabelas comerciais para esse fim." },
+
+    { "id": "disp_4", "estilo": "corpo",
+      "texto": "A obrigação é dirigida ao Distrito Federal, por meio do Complexo Regulador, vedada a vinculação a unidade executante específica, de modo que o cumprimento sobreviva ao remanejamento da rede." },
+
+    { "id": "disp_5", "estilo": "corpo",
+      "texto": "O descumprimento importará, nesta ordem: (a) depósito do valor pelo menor entre o preço máximo de venda ao governo, o preço de referência e o valor de ata vigente (Enunciado n.º 74, I); (b) autorização ao ente para operacionalizar a contratação (Enunciado n.º 147); (c) bloqueio do valor correspondente; e (d) astreintes apenas como última alternativa, em valor proporcional (Enunciados n.º 149 e 86). Monitoramento periódico na forma do Enunciado n.º 133 e do art. 14 da Recomendação CNJ n.º 146/2023." },
+
+    { "id": "disp_6", "estilo": "corpo",
+      "texto": "Sirva a presente sentença, assinada digitalmente, como **MANDADO** e como **OFÍCIO**, com fundamento nos @ref:cpc_297_139_iv e no @ref:lei12153_12, instruída com cópia do laudo médico, para intimação pessoal das autoridades competentes, advertidas de que o descumprimento injustificado configura ato atentatório à dignidade da justiça (@ref:cpc_77_par1_2)." },
+
+    { "id": "disp_7", "estilo": "corpo",
+      "texto": "Sem custas e sem honorários advocatícios (@ref:lei9099_55 c/c @ref:lei12153_27)." },
+
+    { "id": "sec_comandos", "estilo": "secao", "texto": "IV. COMANDOS CARTORÁRIOS" },
+    { "id": "comandos", "tipo": "grupoAlineas", "filhos": [
+      { "id": "intimacao", "estilo": "alinea", "texto": "{{@alinea:intimacao}}) determino a intimação das partes, para conhecimento do conteúdo da presente sentença;" },
+      { "id": "mp", "estilo": "alinea", "texto": "{{@alinea:mp}}) dê-se vista imediata ao Ministério Público do Distrito Federal e Territórios — PROSUS;" },
+      { "id": "cumprida", "estilo": "alinea", "texto": "{{@alinea:cumprida}}) certificado o trânsito em julgado e cumprida a obrigação, proceda-se à baixa e ao arquivamento;" },
+      { "id": "oficio", "estilo": "alinea", "texto": "{{@alinea:oficio}}) após o trânsito em julgado, oficie-se, na forma do @ref:lei12153_12. Após, procedam-se à baixa e ao arquivamento." }
+    ] }
+  ]
+}

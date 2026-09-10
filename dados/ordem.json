@@ -1,5 +1,5 @@
 {
   "_nota": "A ordem é dado. Ela governa a sequência dos modelos na vitrine; deixá-la a cargo do sistema de arquivos mudaria o que o assistente vê primeiro sem que ninguém tivesse decidido isso. Modelo fora desta lista interrompe o build.",
 
-  "modelos": ["procedencia_confirmacao_tutela"]
+  "modelos": ["procedencia_mora_en93", "procedencia_confirmacao_tutela"]
 }
