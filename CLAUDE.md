@@ -16,7 +16,12 @@ referência histórica agora, não é mais mantido em paralelo.
 
 Repositório público: https://github.com/marceloclr/minutar (remote `origin`,
 branch `main`). Publicado a pedido do usuário em 2026-09-10, antes de a
-conversão das 4 rotas estar completa.
+conversão das 4 rotas estar completa. GitHub Pages ativo, serve o `index.html`
+da branch `main` direto: https://marceloclr.github.io/minutar/ (atualiza
+sozinho a cada push).
+
+`PROMPT_CONTINUACAO.md` na raiz é o texto para colar como primeira mensagem
+de uma nova sessão — mantenha os dois em sincronia quando o estado mudar.
 
 ## Arquitetura — autoria modular, distribuição monolítica
 

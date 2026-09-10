@@ -5,6 +5,9 @@ Gerador de minutas do **3º Juizado Especial da Fazenda Pública e Saúde Públi
 O assistente escolhe o tipo de peça na vitrine, preenche o formulário que aquele
 modelo define, confere a prévia e baixa o `.docx` pronto para anexar no PJe.
 
+**Ao vivo:** https://marceloclr.github.io/minutar/ (GitHub Pages, atualiza a
+cada push na branch `main`).
+
 ---
 
 ## Estado atual
