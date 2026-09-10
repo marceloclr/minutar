@@ -1,0 +1,125 @@
+{
+  "_nota": "Convertido de ~/Documentos/GitHub/Gerador de Sentencas/MODELO_SENTENCA_PROCEDENCIA_ROTA_B_confirmacao.html em 2026-09-10. Texto transcrito literalmente; só as citações com @ref já existente em fundamentos.json foram indiretadas. Sem parágrafo de assinatura — o modelo original não tem um (assinatura digital é tratada fora do corpo pelo PJe).",
+
+  "esquema": 1,
+  "id": "procedencia_confirmacao_tutela",
+  "versao": "1.0.0",
+  "oficial": true,
+
+  "metadados": {
+    "titulo": "Sentença de Procedência — Confirmação de Tutela Cumprida",
+    "tipoPeca": "sentenca",
+    "orgao": "3jefp_df",
+    "tema": "saude_procedimento",
+    "classesAplicaveis": ["PROCJEF"],
+    "atualizadoEm": "2026-09-10",
+    "curador": "Gabinete"
+  },
+
+  "aplicabilidade": [
+    "Houve concessão de tutela de urgência neste feito.",
+    "A obrigação já foi cumprida em razão da tutela — o procedimento de saúde foi efetivamente realizado."
+  ],
+
+  "triagem": {
+    "excluir": [
+      "Procedimento ainda não realizado (usar o modelo de procedência com prazo por classificação de risco, mora do Enunciado 93 do FONAJUS).",
+      "Agendamento ou realização ocorreu sem tutela de urgência concedida (usar o modelo de extinção por perda de objeto)."
+    ]
+  },
+
+  "campos": [
+    { "id": "numero_processo", "tipo": "processo", "rotulo": "Número do processo (CNJ)",
+      "ajuda": "Número único do processo no formato CNJ, usado na identificação da peça e no cabeçalho da minuta.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "autor_nome", "tipo": "parte", "rotulo": "Nome da parte autora",
+      "ajuda": "Nome completo da pessoa que ajuizou a ação; aparece no cabeçalho e no corpo da sentença.",
+      "obrigatorio": true, "sensivel": true },
+
+    { "id": "objeto", "tipo": "texto", "rotulo": "Objeto da prestação de saúde",
+      "ajuda": "Descrição do procedimento, exame, cirurgia ou tratamento pedido — o mesmo texto da solicitação no SISREG.",
+      "obrigatorio": true, "sensivel": true },
+
+    { "id": "diagnostico", "tipo": "texto", "rotulo": "Diagnóstico ou CID",
+      "ajuda": "Diagnóstico ou condição clínica que justifica o pedido; usado para fundamentar a necessidade da prestação.",
+      "obrigatorio": true, "sensivel": true },
+
+    { "id": "numero_solicitacao", "tipo": "texto", "rotulo": "Número da solicitação no SISREG",
+      "ajuda": "Identificador da solicitação na regulação (SISREG III), citado no relatório para individualizar o pedido.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "cor_risco", "tipo": "selecao", "rotulo": "Classificação de risco",
+      "ajuda": "Cor atribuída pela regulação conforme a gravidade clínica; usada para descrever a prioridade do caso.",
+      "obrigatorio": true, "sensivel": false,
+      "opcoes": [
+        { "valor": "vermelho", "rotulo": "Vermelho — prioridade 0" },
+        { "valor": "amarelo",  "rotulo": "Amarelo — prioridade 1" },
+        { "valor": "verde",    "rotulo": "Verde — prioridade 2" },
+        { "valor": "azul",     "rotulo": "Azul — prioridade 3" }
+      ] },
+
+    { "id": "data_tutela", "tipo": "data", "rotulo": "Data da concessão da tutela",
+      "ajuda": "Data em que a tutela de urgência foi deferida; aparece por extenso no relatório e na fundamentação.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "id_tutela", "tipo": "texto", "rotulo": "Id. da decisão que concedeu a tutela",
+      "ajuda": "Identificador do documento no PJe referente à decisão que concedeu a tutela, citado como referência processual.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "data_cumprimento", "tipo": "data", "rotulo": "Data da realização do procedimento",
+      "ajuda": "Data em que o procedimento de saúde foi efetivamente realizado, comprovando o cumprimento da obrigação.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "id_cumprimento", "tipo": "texto", "rotulo": "Id. do documento que comprova o cumprimento",
+      "ajuda": "Identificador do documento no PJe que comprova a realização do procedimento, citado como referência processual.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "id_contestacao", "tipo": "texto", "rotulo": "Id. da contestação",
+      "ajuda": "Identificador do documento no PJe referente à contestação apresentada pelo Distrito Federal, citado no relatório.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "situacao_replica", "tipo": "texto", "rotulo": "Situação da réplica",
+      "ajuda": "Frase curta dizendo se houve réplica e sua referência (ex.: \"houve réplica, Id. 123456\"), inserida no relatório.",
+      "obrigatorio": true, "sensivel": false },
+
+    { "id": "id_mp", "tipo": "texto", "rotulo": "Id. do parecer do Ministério Público",
+      "ajuda": "Identificador do documento no PJe referente à manifestação do Ministério Público, citado no relatório.",
+      "obrigatorio": true, "sensivel": false }
+  ],
+
+  "corpo": [
+    { "id": "processo_linha", "estilo": "autuacao", "texto": "Processo n.º: {{numero_processo}}" },
+    { "id": "autor_linha", "estilo": "autuacao", "texto": "Autor: {{autor_nome}}" },
+    { "id": "vistos", "estilo": "vistos", "texto": "Vistos etc." },
+
+    { "id": "sec_relatorio", "estilo": "secao", "texto": "I. RELATÓRIO" },
+    { "id": "relatorio_1", "estilo": "corpo",
+      "texto": "Relatório dispensado, na forma do @ref:lei9099_38 c/c @ref:lei12153_27. Registra-se, para contextualização, que {{autor_nome}} ajuizou ação de obrigação de fazer, com pedido de tutela de urgência, para obter {{objeto}}, em razão de {{diagnostico}}, procedimento inserido na regulação (solicitação n.º {{numero_solicitacao}}, classificação de risco {{cor_risco}})." },
+    { "id": "relatorio_2", "estilo": "corpo",
+      "texto": "A tutela de urgência foi deferida em {{data_tutela|dataExtenso}} (Id. {{id_tutela}}). A obrigação foi cumprida: o procedimento foi efetivamente realizado em {{data_cumprimento|dataExtenso}} (Id. {{id_cumprimento}}). Citado, o Distrito Federal contestou (Id. {{id_contestacao}}); {{situacao_replica}}. O Ministério Público do Distrito Federal e Territórios manifestou-se pela procedência (Id. {{id_mp}})." },
+
+    { "id": "sec_fundamentacao", "estilo": "secao", "texto": "II. FUNDAMENTAÇÃO" },
+    { "id": "fund_1", "estilo": "corpo",
+      "texto": "O feito comporta julgamento antecipado do mérito (@ref:cpc_355_i): a controvérsia é de direito e os fatos estão comprovados por documentos." },
+    { "id": "fund_2", "estilo": "corpo",
+      "texto": "O cumprimento da obrigação decorreu de tutela de urgência concedida — medida de natureza precária e cogente. Por isso, não há perda superveniente do objeto e não é caso de extinção: a tutela precisa ser confirmada por sentença de mérito, para que produza efeitos definitivos e transite em julgado, na linha da jurisprudência do Tribunal de Justiça do Distrito Federal e dos Territórios." },
+    { "id": "fund_3", "estilo": "corpo",
+      "texto": "No mérito, o dever de prestação está demonstrado. O direito à saúde é direito de todos e dever do Estado (@ref:cf_196; @ref:lei8080_6_7), respondendo o Distrito Federal por força da solidariedade dos entes (@ref:stf_tema793). O procedimento foi reconhecido necessário pela própria rede, que o inseriu na regulação com classificação de risco {{cor_risco}} e o executou. A prestação vindicada, portanto, era devida, e a sua realização confirma a procedência do pedido." },
+    { "id": "fund_4", "estilo": "corpo",
+      "texto": "Os fundamentos da decisão que concedeu a tutela de urgência (Id. {{id_tutela}}, de {{data_tutela|dataExtenso}}) ficam expressamente incorporados a esta sentença, por remissão (fundamentação __per relationem__)." },
+
+    { "id": "sec_dispositivo", "estilo": "secao", "texto": "III. DISPOSITIVO" },
+    { "id": "disp_1", "estilo": "corpo",
+      "texto": "Ante o exposto, **JULGO PROCEDENTE** o pedido, com resolução do mérito (@ref:cpc_487_i), e **CONFIRMO A TUTELA DE URGÊNCIA** de Id. {{id_tutela}}, para **CONDENAR** o **DISTRITO FEDERAL** na obrigação de fazer consistente em {{objeto}}, já satisfeita nos autos com a efetiva realização do procedimento em {{data_cumprimento|dataExtenso}}." },
+    { "id": "disp_2", "estilo": "corpo",
+      "texto": "Sem custas e sem honorários advocatícios (@ref:lei9099_55 c/c @ref:lei12153_27)." },
+
+    { "id": "sec_comandos", "estilo": "secao", "texto": "IV. COMANDOS CARTORÁRIOS" },
+    { "id": "comandos", "tipo": "grupoAlineas", "filhos": [
+      { "id": "intimacao", "estilo": "alinea", "texto": "{{@alinea:intimacao}}) intimem-se as partes;" },
+      { "id": "mp", "estilo": "alinea", "texto": "{{@alinea:mp}}) dê-se vista ao Ministério Público do Distrito Federal e Territórios — PROSUS;" },
+      { "id": "transito", "estilo": "alinea", "texto": "{{@alinea:transito}}) certificado o trânsito em julgado, procedam-se à baixa e ao arquivamento." }
+    ] }
+  ]
+}

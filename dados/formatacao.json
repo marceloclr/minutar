@@ -3,7 +3,7 @@
 
   "_origemDasMargens": "As margens vieram da inspeção do word/document.xml de Sentenca_NaoConhecimento_Embargos_ErroGrosseiro_ADPF615.docx e coincidem exatamente com o @page das quatro rotas (25/20/25/30 mm). Os dois padrões da vara concordam quanto à página e divergiam quanto à fonte; a divergência foi decidida em 2026-09-10 a favor das rotas de saúde.",
 
-  "_pendente": "Duas medidas das rotas ainda NÃO foram adotadas, por falta de instrução expressa: entrelinha (as rotas usam 1,4; aqui está 1,5) e espaço entre parágrafos (as rotas usam 6pt; aqui está 10pt). Confirmar antes de mexer.",
+  "_decididoEm20260910": "Entrelinha, espaço entre parágrafos (corpo), espaço antes/depois e alinhamento de 'secao', e espaço de 'autuacao' foram conferidos contra o CSS real das 4 rotas de saúde e corrigidos para bater com ele (a mesma decisão de 2026-09-10 que já tinha resolvido a fonte). O recuo pendente (hanging) de 'alinea' foi mantido como estava — vem da inspeção do .docx real da vara, e as rotas só simplificaram isso no mockup HTML sem essa intenção. Acrescentado o estilo 'vistos' (Vistos etc.), que não tinha equivalente.",
 
   "fonte": {
     "familia": "Cambria",
@@ -29,9 +29,9 @@
   },
 
   "entrelinha": {
-    "linhaTwips": 360,
+    "linhaTwips": 336,
     "regra": "auto",
-    "_nota": "360/240 = 1,5 linha."
+    "_nota": "336/240 = 1,4 linha — padrão das 4 rotas de saúde."
   },
 
   "estilos": {
@@ -56,15 +56,23 @@
       "alinhamento": "left",
       "negrito": false,
       "espacoAntesTwips": 0,
-      "espacoDepoisTwips": 0,
+      "espacoDepoisTwips": 120,
+      "recuoPrimeiraLinhaTwips": 0
+    },
+    "vistos": {
+      "_uso": "\"Vistos etc.\" — abertura da sentença, antes do relatório",
+      "alinhamento": "left",
+      "negrito": true,
+      "espacoAntesTwips": 240,
+      "espacoDepoisTwips": 240,
       "recuoPrimeiraLinhaTwips": 0
     },
     "secao": {
       "_uso": "I – RELATÓRIO, II – FUNDAMENTAÇÃO, III – DISPOSITIVO",
-      "alinhamento": "center",
+      "alinhamento": "left",
       "negrito": true,
-      "espacoAntesTwips": 240,
-      "espacoDepoisTwips": 200,
+      "espacoAntesTwips": 280,
+      "espacoDepoisTwips": 160,
       "recuoPrimeiraLinhaTwips": 0
     },
     "subsecao": {
@@ -81,7 +89,7 @@
       "alinhamento": "both",
       "negrito": false,
       "espacoAntesTwips": 0,
-      "espacoDepoisTwips": 200,
+      "espacoDepoisTwips": 120,
       "recuoPrimeiraLinhaTwips": 709
     },
     "alinea": {

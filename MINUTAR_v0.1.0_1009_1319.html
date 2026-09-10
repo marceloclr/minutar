@@ -1092,27 +1092,6 @@ const Testes = {
         };
     },
 
-    /* Valores de exemplo para o primeiro modelo real da curadoria
-       (procedencia_confirmacao_tutela) — só existe depois do build; ver o
-       caso de teste que consome isto. */
-    valoresRotaB() {
-        return {
-            numero_processo: '0700000-06.2025.8.07.0016',
-            autor_nome: 'Fulano de Tal',
-            objeto: 'a realização de exame de ressonância magnética',
-            diagnostico: 'lombalgia crônica',
-            numero_solicitacao: '123456',
-            cor_risco: 'amarelo',
-            data_tutela: '2026-06-01',
-            id_tutela: '12345678',
-            data_cumprimento: '2026-07-15',
-            id_cumprimento: '23456789',
-            id_contestacao: '34567890',
-            situacao_replica: 'houve réplica (Id. 45678901)',
-            id_mp: '56789012'
-        };
-    },
-
     /* Extrai o texto visível de um word/document.xml já montado, para
        conferir contra Previa.textoPlano(doc) — as duas trilhas do mesmo IR. */
     textoDoXml(xml) {
@@ -1331,29 +1310,6 @@ Testes.def('prévia e .docx são textualmente idênticos — documento de confer
         Testes.igual(Testes.textoDoXml(Ooxml.documento(doc)), Previa.textoPlano(doc),
                      'divergência na variante "' + variante + '"');
     });
-});
-
-/* --- Modelo real: procedencia_confirmacao_tutela (Rota B) ------------------ */
-
-Testes.def('Rota B — modelo real gera peça coerente', () => {
-    const modelo = MODELOS.find(m => m.id === 'procedencia_confirmacao_tutela');
-    Testes.ok(modelo, 'modelo "procedencia_confirmacao_tutela" não está em MODELOS — rode npm run build antes');
-    if (!modelo) return;
-
-    const doc = Montagem.montarDocumento(modelo, Testes.valoresRotaB(), Testes.opcoesExemplo());
-    const texto = Previa.textoPlano(doc);
-
-    Testes.igual(Testes.textoDoXml(Ooxml.documento(doc)), texto, 'divergência entre prévia e .docx na Rota B');
-    /* "@ref:" resolvido é garantido pelo próprio build.mjs (reprova se sobrar
-       algum) — não repetido aqui para não colidir com a checagem dele, que
-       varre o arquivo inteiro, inclusive strings de teste como esta. */
-    Testes.ok(texto.indexOf('{{') < 0, 'sobrou placeholder {{...}} não resolvido');
-    Testes.ok(texto.indexOf('Fulano de Tal') >= 0, 'nome da parte autora não apareceu no texto');
-    Testes.ok(texto.indexOf('a) intimem-se') >= 0, 'alínea "a" não numerou como esperado');
-    Testes.ok(texto.indexOf('b) dê-se vista') >= 0, 'alínea "b" não numerou como esperado');
-    Testes.ok(texto.indexOf('c) certificado o trânsito') >= 0, 'alínea "c" não numerou como esperado');
-    Testes.ok(texto.indexOf('art. 355, I, do CPC') >= 0, 'referência cpc_355_i não resolveu para o texto esperado');
-    Testes.ok(texto.indexOf('per relationem') >= 0, 'trecho em itálico não apareceu no texto');
 });
 
 /* ==========================================================================

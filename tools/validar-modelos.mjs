@@ -365,7 +365,7 @@ arquivos.forEach(arquivo => {
                 if (filtro && FILTROS.indexOf(filtro) < 0) erro(onde, 'filtro inexistente: |' + filtro);
 
                 if (alvo.startsWith('@')) {
-                    const sist = alvo.slice(1).split('.')[0];
+                    const sist = alvo.slice(1).split(':')[0];
                     if (['hoje', 'local', 'magistrado', 'orgao', 'alinea'].indexOf(sist) < 0) {
                         erro(onde, 'valor de sistema desconhecido: ' + alvo);
                     }
